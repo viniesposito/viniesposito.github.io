@@ -13,7 +13,7 @@ a {
 }
 
 a:hover {
-    font-weight: bold;
+    color:#121935;
 }
 
 svg {
@@ -30,4 +30,5 @@ svg:hover {
 .socialmediaicons {
     display: flex;
     justify-content: center;
+    margin-bottom: 50px;
 }
