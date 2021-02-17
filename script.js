@@ -28,11 +28,15 @@ function createCumulativeSequence(length) {
     return cumulRandomSeq
 }
 
-var seqLength = 500;
-var initSeqLength = 1;
-var xAxis = Array(seqLength).fill().map((element, index) => index);
+function getMinOrMaxOfData(data, func) {
+    var temp = [];
 
-var colorPalette = ["#283d3b", "#197278", "#446768", "#6f5c57", "#9a5147", "#c44536", "#772e25"];
+    data.forEach(
+        e => temp.push(func.apply(Math, e))
+    );
+
+    return func.apply(Math, temp);
+}
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -66,8 +70,17 @@ function generateDatasets(numberOfSeqs) {
     return [series, datasets]
 }
 
-var nSeqs = 5;
+const seqLength = 500;
+const initSeqLength = 1;
+const colorPalette = ["#283d3b", "#197278", "#446768", "#6f5c57", "#9a5147", "#c44536", "#772e25"];
+const nSeqs = 7;
+const timer = 10;
+const axisBuffer = 1.05;
+
+var xAxis = Array(seqLength).fill().map((element, index) => index);
 var [series, datasets] = generateDatasets(nSeqs);
+var yAxisMin = axisBuffer * getMinOrMaxOfData(series,Math.min);
+var yAxisMax = axisBuffer * getMinOrMaxOfData(series,Math.max);
 
 var chartConfigs = {
     type: 'line',
@@ -94,7 +107,9 @@ var chartConfigs = {
             }],
             yAxes: [{
                 ticks: {
-                    display: false
+                    display: false,
+                    min: yAxisMin,
+                    max: yAxisMax
                 },
                 gridLines: {
                     display: false
@@ -127,5 +142,5 @@ window.onload = function () {
         } else {
             clearInterval(iterator);
         }
-    }, 1);
+    }, timer);
 };
