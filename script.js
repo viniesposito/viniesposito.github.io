@@ -70,10 +70,10 @@ function generateDatasets(numberOfSeqs) {
     return [series, datasets]
 }
 
-const seqLength = 500;
+const seqLength = 400;
 const initSeqLength = 1;
 const colorPalette = ["#283d3b", "#197278", "#446768", "#6f5c57", "#9a5147", "#c44536", "#772e25"];
-const nSeqs = 7;
+const nSeqs = 5;
 const timer = 10;
 const axisBuffer = 1.05;
 
