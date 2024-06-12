@@ -50,6 +50,10 @@ svg:hover {
   content: " ]";
 }
 
+.emailprefix::after {
+  content: "\00a0[at]";
+}
+
 @media (max-width: 1024px) {
   body {
     font-size: 14px;
