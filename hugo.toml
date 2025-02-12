@@ -1,0 +1,30 @@
+baseURL = 'viniciusesposito.com'
+languageCode = 'en-us'
+title = 'Vinicius Esposito'
+
+theme = 'xmin'
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [['\[', '\]'], ['$$', '$$']]
+          inline = [['\(', '\)']]
+
+[params]
+  math = true
+
+[[menu.main]]
+  name = "Home"
+  url = ""
+  weight = 1
+
+[[menu.main]]
+  name = "Notes"
+  url = "/notes/"
+  weight = 2
+
+[outputs]
+  notes = ['html', 'rss']

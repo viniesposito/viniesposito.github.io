@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Forwards Are All You Need | Vinicius Esposito</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    
+  </head>
+
+  <body>
+    <nav>
+    <ul class="menu">
+      
+      <li><a href="/">Home</a></li>
+      
+      <li><a href="/notes/">Notes</a></li>
+      
+    </ul>
+    <hr/>
+    </nav>
+
+<div class="article-meta">
+<h1><span class="title">Forwards Are All You Need</span></h1>
+
+<h2 class="date">2025/02/10</h2>
+</div>
+
+<main>
+<p><img src="/always_has_been.jpg" alt="Always Has Been"></p>
+<p>If you have taken a course on options, it&rsquo;s likely you have gone through one or multiple derivations of Black-Scholes. Odds are you stared at Ito&rsquo;s Lemma for a few minutes and wondered why you didn&rsquo;t instead join your friends in brute forcing into your brain a walk-through of &ldquo;what happens to the three financial statements when depreciation goes up by $10&rdquo; <sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>. But you persevered. You graduated, landed a job in NYC, and moved into an East Village apartment, which, like a Mayan temple, only gets sunlight once a year in the winter solstice.</p>
+<p>As a newly-minted trader, structurer, or (God forbid) salesperson, you have to price derivatives - something that likely looks like choosing an underlyer (e.g. the S&amp;P 500 or natural gas futures), a type of derivative contract (e.g. a vanilla call option or a &ldquo;phoenix autocall&rdquo;), a maturity (e.g. 1-month or 20Apr2025) and then inputting some numbers.</p>
+<p>Very quickly you will realize that, for most simpler derivatives such as vanilla calls or puts, basically only two things matter: the &ldquo;forward&rdquo; and the &ldquo;vol&rdquo;.</p>
+<h2 id="a-quick-detour-on-forward-pricing">A quick detour on forward pricing</h2>
+<p>By far, the most useful outline of forward pricing I have seen is in Natenberg<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup>. The main thing is that it completely erases the need to memorize whether &ldquo;rates have a plus while dividends have a minus&rdquo; in the formula (i.e. \(F=Se^{(r-d)t}\)), but instead gives you a framework (or mental model) to think about it.</p>
+<p>In sum, a forward is nothing more than a handshake in which you agree to purchase something for a given price in the future. This should have some benefits as well as some disadvantages versus purchasing that thing today. So at a very high level:</p>
+<p>forward price = current price + (benefits of buying later - benefits of buying now) = current price + (costs of buying now - benefits of buying now)</p>
+<p>In the case of a stock trading now at \(S\):</p>
+<ul>
+<li>Option 1: buy stock now, hold it for one year.
+<ul>
+<li>Benefit: earn \(d \times S\) in dividends (assuming \(d\) is dividend yield of stock)</li>
+<li>These dividends are a benefit of buying stock now and a cost of buying later (opportunity cost)</li>
+</ul>
+</li>
+<li>Option 2: buy &ldquo;forward&rdquo; on stock i.e. agree to buy stock for \(F\) in 1 year.
+<ul>
+<li>Benefit: earn \(r \times S\) in interest (you didn&rsquo;t spend money so you get to invest it)</li>
+<li>This interest is a benefit of buying later and a cost of buying now (opportunity cost)</li>
+</ul>
+</li>
+</ul>
+<p>As a result, the forward should have a price that looks something like: current price + interest earned from not outlaying any cash now - dividends forgone from buying later. You can draw a nice table of cash flows and convince yourself, via no arbitrage, that \(F=Se^{(r-d)t}\).</p>
+<p>The nice thing about understanding the framework rather than just remembering the formula is that you should be able to generalize it to new contexts. Let&rsquo;s say instead of a stock we were talking about barrels of oil: buying now has the disadvantage of, well, having to deal with storing actual barrels of oil. Precisely like the dividends case for stocks, storage cost is a key cost for buying physical commodities now, so you would expect it to show up in the formula following a plus sign - a negative cash flow you forgo by choosing to buy the future.</p>
+<h2 id="the-set-up">The set up</h2>
+<p>One way to think about derivatives pricing roughly involves the following steps<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>:</p>
+<ol>
+<li>simulate many different trajectories of the underlying asset, from the onset of the contract up to its maturity</li>
+<li>look at the array of terminal values and apply your contract&rsquo;s payoff function to them</li>
+<li>take the average those payoffs</li>
+<li>bring that payoff to present value</li>
+</ol>
+<p>Step 1 is arguably the hardest one: you have to pick a model to describe the behavior of the underlying asset over time, which begs the choice of a process and its parameters.</p>
+<p>Let&rsquo;s simply assume the underlyer is a stock that follows a Geometric Brownian Motion with some reasonable parameter choices (risk-free rate, dividend yield, and volatility). You can expand the shaded section below to see the relevant code along with the prompt used to have GPT o3-mini generate it.</p>
+<details>
+    <summary>Click to expand and see source prompt and code</summary>
+    <div><p>Prompt:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span>can you code some nice looking charts illustrating that if we simulate many different paths for a stock with some dividend yield and assume some interest rate, the forward will be the center of that distribution? generate two plots: on the left, show a subset of the generated paths over time as line plots, making sure to emphasize the forward drift line among the random paths around it. on the right, plot the distribution of terminal values and two vertical lines: one marking the average simulated terminal value and another marking the forward value
+</span></span></code></pre></div><p>GPT o3-mini response (with very minor, if not just aesthetic, changes done by me):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> numpy <span style="color:#66d9ef">as</span> np
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> matplotlib.pyplot <span style="color:#66d9ef">as</span> plt
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Simulation parameters</span>
+</span></span><span style="display:flex;"><span>S0 <span style="color:#f92672">=</span> <span style="color:#ae81ff">100.0</span> <span style="color:#75715e"># Initial stock price</span>
+</span></span><span style="display:flex;"><span>r <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.05</span> <span style="color:#75715e"># Risk-free interest rate (annualized)</span>
+</span></span><span style="display:flex;"><span>q <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.02</span> <span style="color:#75715e"># Dividend yield (annualized)</span>
+</span></span><span style="display:flex;"><span>sigma <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.2</span> <span style="color:#75715e"># Volatility (annualized)</span>
+</span></span><span style="display:flex;"><span>T <span style="color:#f92672">=</span> <span style="color:#ae81ff">1.0</span> <span style="color:#75715e"># Time to maturity (in years)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># -------------------------------</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Part 1: Simulate and Plot Sample Paths</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># -------------------------------</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Use daily steps for the path simulation</span>
+</span></span><span style="display:flex;"><span>n_steps <span style="color:#f92672">=</span> <span style="color:#ae81ff">252</span> <span style="color:#75715e"># Number of time steps (e.g., trading days in a year)</span>
+</span></span><span style="display:flex;"><span>dt <span style="color:#f92672">=</span> T <span style="color:#f92672">/</span> n_steps
+</span></span><span style="display:flex;"><span>time <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>linspace(<span style="color:#ae81ff">0</span>, T, n_steps <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Number of sample paths to show (for clarity, we use a small number)</span>
+</span></span><span style="display:flex;"><span>n_sample_paths <span style="color:#f92672">=</span> <span style="color:#ae81ff">1000</span>
+</span></span><span style="display:flex;"><span>sample_paths <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros((n_sample_paths, n_steps <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>sample_paths[:, <span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> S0
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Set seed for reproducibility</span>
+</span></span><span style="display:flex;"><span>np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>seed(<span style="color:#ae81ff">42</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Simulate each sample path using geometric Brownian motion with dividend yield.</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Under the risk-neutral measure, the dynamics are:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># dS/S = (r - q) dt + sigma dW,</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># which leads to the discrete solution:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># S(t+dt) = S(t) * exp[(r - q - 0.5*sigma^2)*dt + sigma*sqrt(dt)*Z]</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n_steps):
+</span></span><span style="display:flex;"><span>	Z <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>normal(size<span style="color:#f92672">=</span>n_sample_paths)
+</span></span><span style="display:flex;"><span>	sample_paths[:, i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> sample_paths[:, i] <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>exp((r <span style="color:#f92672">-</span> q <span style="color:#f92672">-</span> <span style="color:#ae81ff">0.5</span> <span style="color:#f92672">*</span> sigma<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span>) <span style="color:#f92672">*</span> dt <span style="color:#f92672">+</span> sigma <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>sqrt(dt) <span style="color:#f92672">*</span> Z)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Calculate the forward expected path at any time t:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># E[S(t)] = S0 * exp((r - q)*t)</span>
+</span></span><span style="display:flex;"><span>forward_path <span style="color:#f92672">=</span> S0 <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>exp((r <span style="color:#f92672">-</span> q) <span style="color:#f92672">*</span> time)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># -------------------------------</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Part 2: Simulate Terminal Stock Prices for Histogram</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># -------------------------------</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># For a more robust histogram, simulate many paths (only terminal values needed)</span>
+</span></span><span style="display:flex;"><span>n_paths_hist <span style="color:#f92672">=</span> <span style="color:#ae81ff">10000</span>
+</span></span><span style="display:flex;"><span>Z_hist <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>normal(size<span style="color:#f92672">=</span>n_paths_hist)
+</span></span><span style="display:flex;"><span>ST <span style="color:#f92672">=</span> S0 <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>exp((r <span style="color:#f92672">-</span> q <span style="color:#f92672">-</span> <span style="color:#ae81ff">0.5</span> <span style="color:#f92672">*</span> sigma<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span>) <span style="color:#f92672">*</span> T <span style="color:#f92672">+</span> sigma <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>sqrt(T) <span style="color:#f92672">*</span> Z_hist)
+</span></span><span style="display:flex;"><span>simulated_mean <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(ST)
+</span></span><span style="display:flex;"><span>simulated_m1sig <span style="color:#f92672">=</span> simulated_mean <span style="color:#f92672">-</span> np<span style="color:#f92672">.</span>std(ST)
+</span></span><span style="display:flex;"><span>simulated_p1sig <span style="color:#f92672">=</span> simulated_mean <span style="color:#f92672">+</span> np<span style="color:#f92672">.</span>std(ST)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Calculate the forward price for maturity T:</span>
+</span></span><span style="display:flex;"><span>forward <span style="color:#f92672">=</span> S0 <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>exp((r <span style="color:#f92672">-</span> q) <span style="color:#f92672">*</span> T)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># -------------------------------</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Plotting: Sample Paths and Histogram</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># -------------------------------</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>fig, ax <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>subplots(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, figsize<span style="color:#f92672">=</span>(<span style="color:#ae81ff">12</span>, <span style="color:#ae81ff">6</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Plot 1: Sample Paths over Time</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n_sample_paths):
+</span></span><span style="display:flex;"><span>	ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>plot(time, sample_paths[i], lw<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>, label<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Simulated Paths&#39;</span> <span style="color:#66d9ef">if</span> i <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">None</span>, alpha<span style="color:#f92672">=</span><span style="color:#ae81ff">0.5</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Plot the forward expected path (risk-neutral expected value)</span>
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>plot(time, forward_path, <span style="color:#e6db74">&#39;k--&#39;</span>, lw<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Forward Expected Path&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>set_xlabel(<span style="color:#e6db74">&#39;Time (years)&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>set_ylabel(<span style="color:#e6db74">&#39;Stock Price&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Simulated Stock Paths (only showing </span><span style="color:#e6db74">{</span>n_sample_paths<span style="color:#e6db74">:</span><span style="color:#e6db74">,</span><span style="color:#e6db74">}</span><span style="color:#e6db74">)&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>legend()
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>grid(<span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Plot 2: Histogram of Terminal Stock Prices at T</span>
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>hist(ST, bins<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>, density<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>, alpha<span style="color:#f92672">=</span><span style="color:#ae81ff">0.6</span>, color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;skyblue&#39;</span>, edgecolor<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;black&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>axvline(simulated_mean, color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;blue&#39;</span>, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>, linewidth<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>,
+</span></span><span style="display:flex;"><span>label<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Simulated Avg = </span><span style="color:#e6db74">{</span>simulated_mean<span style="color:#e6db74">:</span><span style="color:#e6db74">.2f</span><span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>axvline(forward, color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;red&#39;</span>, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>, linewidth<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>,
+</span></span><span style="display:flex;"><span>label<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Forward = </span><span style="color:#e6db74">{</span>forward<span style="color:#e6db74">:</span><span style="color:#e6db74">.2f</span><span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>axvline(simulated_m1sig, color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;green&#39;</span>, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>, linewidth<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>,
+</span></span><span style="display:flex;"><span>label<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Simulated Avg - 1stdev = </span><span style="color:#e6db74">{</span>simulated_m1sig<span style="color:#e6db74">:</span><span style="color:#e6db74">.2f</span><span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>axvline(simulated_p1sig, color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;green&#39;</span>, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>, linewidth<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>, label<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Simulated Avg - 1stdev = </span><span style="color:#e6db74">{</span>simulated_p1sig<span style="color:#e6db74">:</span><span style="color:#e6db74">.2f</span><span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>set_xlabel(<span style="color:#e6db74">&#39;Stock Price at Maturity (T)&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>set_ylabel(<span style="color:#e6db74">&#39;Probability Density&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Distribution of Terminal Stock Prices (</span><span style="color:#e6db74">{</span>n_paths_hist<span style="color:#e6db74">:</span><span style="color:#e6db74">,</span><span style="color:#e6db74">}</span><span style="color:#e6db74"> paths)&#39;</span>)
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>legend()
+</span></span><span style="display:flex;"><span>ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>grid(<span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>plt<span style="color:#f92672">.</span>tight_layout()
+</span></span><span style="display:flex;"><span>plt<span style="color:#f92672">.</span>show()
+</span></span></code></pre></div></div>
+</details>
+<p><img src="/plots.png" alt="Diffusion Plots"></p>
+<p>The above charts illustrates steps 1 and 2:</p>
+<ul>
+<li>
+<p>The left plot shows the evolution of a sample of 1,000 simulated paths for our stock for 1 year.</p>
+<ul>
+<li>The dashed black line shows a line which simply accrues daily the &ldquo;forward rate&rdquo; given by \(r-d\), the difference between the risk-free rate and the dividend yield (I&rsquo;ve assume \(r=0.05\) and \(d=0.02\), implying the black line drifts by 3% yearly or 3% / 252 = 0.012% = 1.2bps a day).</li>
+</ul>
+</li>
+<li>
+<p>More interestingly, the plot on the right shows the distribution of terminal values for 10,000 simulated paths for our stock.</p>
+<ul>
+<li>The dashed red line marks the terminal value for the black path on the left chart: one that simply drifts by the forward rate. As a result, it is not surprising that it ends up very close to 103 (3% return on an assumed 100 initial value).</li>
+<li>The dashed blue line (hard to see as it&rsquo;s very close to the red one) marks the average terminal value i.e. the mean value of the plotted distribution.</li>
+<li>The dashed green lines mark plus and minus one standard deviation from the mean in this distribution. Also not surprisingly, since we generated 1 year paths, this is not too far from our assumed 20% volatility (1std = 20.69 in this example<sup id="fnref:4"><a href="#fn:4" class="footnote-ref" role="doc-noteref">4</a></sup>)</li>
+</ul>
+</li>
+</ul>
+<p>That&rsquo;s a lot of information, but understanding this is very powerful and should be the key to figuring out why everything revolves around &ldquo;forward&rdquo; and &ldquo;vol&rdquo;. I will skip covering volatility to great detail here as I think its place in this framework is relatively easy to grasp: the higher the volatility, the higher the dispersion of paths at maturity. Now, a key question is: what are paths dispersed around?</p>
+<h2 id="the-forward-is-the-underlyer-not-spot">The forward is the underlyer, not spot</h2>
+<p>I have glanced over the fact that in the right plot above, the simulated average and the forward value are remarkably close. A reasonable hypothesis is that the terminal value distribution is centered around the forward value.</p>
+<p>First, we&rsquo;ll quickly gather some ammo. Good old Put-Call Parity<sup id="fnref:5"><a href="#fn:5" class="footnote-ref" role="doc-noteref">5</a></sup> tells us something like &ldquo;you can create a forward by buying a call and shorting a put, both struck at the forward price&rdquo;, a so-called &ldquo;synthetic forward&rdquo;.</p>
+<p>If options were trading in a way that imply a distribution whose mean is different from the forward price, we could get a little bit creative. Let&rsquo;s say option markets are pricing a distribution with mean above the current forward price: you should be sensing &ldquo;option package expensive, forward cheap&rdquo;. Specifically, you should be able to:</p>
+<ol>
+<li>sell the synthetic forward built by going short a call and long a put both struck at the forward price</li>
+<li>buy the actual forward (or equivalently, borrow cash and purchase the asset)</li>
+</ol>
+<p>This portfolio yields a risk-less profit at inception because the synthetic forward should fairly be worth \(S_0e^{−dT}−Fe^{−rT}\) (by put–call parity), the mispricing implies an immediate “extra” cash inflow of:</p>
+$$Δ=[C(F)−P(F)]−S_0e^{−dT}−Fe^{−rT}>0$$<table>
+  <thead>
+      <tr>
+          <th style="text-align: center">Cash flow</th>
+          <th style="text-align: center">Leg 1 (short synthetic forward)</th>
+          <th style="text-align: center">Leg 2 (long actual forward)</th>
+          <th style="text-align: center">Total cash flow</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: center">Time = 0</td>
+          <td style="text-align: center">\(\Delta > 0\) (see above for details)</td>
+          <td style="text-align: center">0</td>
+          <td style="text-align: center">\(\Delta>0\)</td>
+      </tr>
+      <tr>
+          <td style="text-align: center">Time = Maturity</td>
+          <td style="text-align: center">\(-[S(T)-F]\)</td>
+          <td style="text-align: center">\(S(T)-F\)</td>
+          <td style="text-align: center">0</td>
+      </tr>
+  </tbody>
+</table>
+<p>In words: you are able to structure a trade in which selling the &ldquo;mispriced&rdquo; synthetic forward produces some positive cash flow at inception, while the position is risk-less at maturity since the two legs perfectly offset each other.</p>
+<p>As a result, in this setting, we can conclude that the terminal value distribution of underlyer has to be centered around the forward, else there would be an abirtrage opportunity.</p>
+<p>Taking a step back: typically, we are taught that options are a function of an underlyer such as a stock, or a spot price of an index, etc. And as a consequence, those underlyers come with &ldquo;baggage&rdquo;: an interest rate<sup id="fnref:6"><a href="#fn:6" class="footnote-ref" role="doc-noteref">6</a></sup>, dividend yield, etc. This is why a class on derivative usually starts covering exclusively stocks with no dividends, only to then introduce dividends later as an &ldquo;adjustment&rdquo; to the baseline Black-Scholes model.</p>
+<p>The key shift in perspective is: instead, options are effectively a function of the forward price of the underlyer at the relevant maturity date. Things like interest rates and dividends impact where the forward is relative to spot, but that information is entirely conveyed by \(\frac{F}{S}\).</p>
+<p>Worth noting that this is nowhere a new insight and, in fact, is the foundation of <a href="https://en.wikipedia.org/wiki/Black_model">a model published by Fischer Black in 1976</a>. You could argue this model is a nice simplification of Black-Scholes, but I&rsquo;d argue the basic Black-Scholes first taught in school is a simplification of this model, as it generalizes to asset classes in which either the underlyer is by default the forward because spot is not directly tradeable (e.g. VIX) or because it&rsquo;s a pain to trade spot (e.g. physical commodities).</p>
+<details>
+    <summary>Click to expand and see code</summary>
+    <div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> numpy <span style="color:#66d9ef">as</span> np
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> matplotlib.pyplot <span style="color:#66d9ef">as</span> plt
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Base parameters</span>
+</span></span><span style="display:flex;"><span>S0 <span style="color:#f92672">=</span> <span style="color:#ae81ff">100.0</span>       <span style="color:#75715e"># Initial stock price</span>
+</span></span><span style="display:flex;"><span>sigma <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.2</span>      <span style="color:#75715e"># Volatility (annualized)</span>
+</span></span><span style="display:flex;"><span>T <span style="color:#f92672">=</span> <span style="color:#ae81ff">1.0</span>          <span style="color:#75715e"># Time to maturity (in years)</span>
+</span></span><span style="display:flex;"><span>n_steps <span style="color:#f92672">=</span> <span style="color:#ae81ff">252</span>    <span style="color:#75715e"># Number of time steps (daily steps)</span>
+</span></span><span style="display:flex;"><span>dt <span style="color:#f92672">=</span> T <span style="color:#f92672">/</span> n_steps
+</span></span><span style="display:flex;"><span>time <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>linspace(<span style="color:#ae81ff">0</span>, T, n_steps <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Set a seed for reproducibility.</span>
+</span></span><span style="display:flex;"><span>np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>seed(<span style="color:#ae81ff">42</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Define four different forward drift values (r - q)</span>
+</span></span><span style="display:flex;"><span>fwd_rates <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">0.3</span>, <span style="color:#ae81ff">0.0</span>, <span style="color:#ae81ff">0.3</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Number of paths for simulation</span>
+</span></span><span style="display:flex;"><span>n_sample_paths <span style="color:#f92672">=</span> <span style="color:#ae81ff">100</span>   <span style="color:#75715e"># For sample path plot (kept low for clarity)</span>
+</span></span><span style="display:flex;"><span>n_paths_hist   <span style="color:#f92672">=</span> <span style="color:#ae81ff">10000</span>  <span style="color:#75715e"># For histogram of terminal prices</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Create a figure with 4 rows and 2 columns.</span>
+</span></span><span style="display:flex;"><span>fig, axs <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>subplots(len(fwd_rates), <span style="color:#ae81ff">2</span>, figsize<span style="color:#f92672">=</span>(<span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">10</span>), sharex<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;col&#39;</span>, sharey<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;col&#39;</span>)
+</span></span><span style="display:flex;"><span>fig<span style="color:#f92672">.</span>suptitle(<span style="color:#e6db74">&#34;Effect of forward rate on GBM Paths and Terminal Price Distribution&#34;</span>, fontsize<span style="color:#f92672">=</span><span style="color:#ae81ff">12</span>, y<span style="color:#f92672">=</span><span style="color:#ae81ff">0.925</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> idx, fwd <span style="color:#f92672">in</span> enumerate(fwd_rates):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># -------------------------------</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Part 1: Simulate and Plot Sample Paths</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># -------------------------------</span>
+</span></span><span style="display:flex;"><span>    sample_paths <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>zeros((n_sample_paths, n_steps <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>    sample_paths[:, <span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> S0
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Simulate sample paths using GBM dynamics:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># S(t+dt) = S(t) * exp[( (r - q) - 0.5*sigma^2)*dt + sigma*sqrt(dt)*Z ]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Here we directly use &#39;fwd&#39; as (r - q)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n_steps):
+</span></span><span style="display:flex;"><span>        Z <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>normal(size<span style="color:#f92672">=</span>n_sample_paths)
+</span></span><span style="display:flex;"><span>        sample_paths[:, i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> sample_paths[:, i] <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>exp((fwd <span style="color:#f92672">-</span> <span style="color:#ae81ff">0.5</span> <span style="color:#f92672">*</span> sigma<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span>) <span style="color:#f92672">*</span> dt <span style="color:#f92672">+</span> sigma <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>sqrt(dt) <span style="color:#f92672">*</span> Z)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Calculate the forward (expected) path: E[S(t)] = S0 * exp((r - q)*t)</span>
+</span></span><span style="display:flex;"><span>    forward_path <span style="color:#f92672">=</span> S0 <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>exp(fwd <span style="color:#f92672">*</span> time)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ax_path <span style="color:#f92672">=</span> axs[idx, <span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Plot all sample paths (using a light line for clarity)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> path <span style="color:#f92672">in</span> sample_paths:
+</span></span><span style="display:flex;"><span>        ax_path<span style="color:#f92672">.</span>plot(time, path, lw<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>, alpha<span style="color:#f92672">=</span><span style="color:#ae81ff">0.6</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Overlay the forward expected path (dashed black line)</span>
+</span></span><span style="display:flex;"><span>    ax_path<span style="color:#f92672">.</span>plot(time, forward_path, <span style="color:#e6db74">&#39;k--&#39;</span>, lw<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>, label<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Forward = </span><span style="color:#e6db74">{</span>forward_path[<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#e6db74">:</span><span style="color:#e6db74">.2f</span><span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>    ax_path<span style="color:#f92672">.</span>set_xlabel(<span style="color:#e6db74">&#34;Time (years)&#34;</span>, fontsize<span style="color:#f92672">=</span><span style="color:#ae81ff">8</span>)
+</span></span><span style="display:flex;"><span>    ax_path<span style="color:#f92672">.</span>set_ylabel(<span style="color:#e6db74">&#34;Stock Price&#34;</span>, fontsize<span style="color:#f92672">=</span><span style="color:#ae81ff">8</span>)
+</span></span><span style="display:flex;"><span>    ax_path<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Simulated paths, Forward rate = (r - q) = </span><span style="color:#e6db74">{</span>fwd<span style="color:#e6db74">:</span><span style="color:#e6db74">.0%</span><span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>, fontsize<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>)
+</span></span><span style="display:flex;"><span>    ax_path<span style="color:#f92672">.</span>legend()
+</span></span><span style="display:flex;"><span>    ax_path<span style="color:#f92672">.</span>grid(<span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># -------------------------------</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Part 2: Simulate Terminal Stock Prices for Histogram</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># -------------------------------</span>
+</span></span><span style="display:flex;"><span>    Z_hist <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>normal(size<span style="color:#f92672">=</span>n_paths_hist)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># Terminal stock price at T:</span>
+</span></span><span style="display:flex;"><span>    ST <span style="color:#f92672">=</span> S0 <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>exp((fwd <span style="color:#f92672">-</span> <span style="color:#ae81ff">0.5</span> <span style="color:#f92672">*</span> sigma<span style="color:#f92672">**</span><span style="color:#ae81ff">2</span>) <span style="color:#f92672">*</span> T <span style="color:#f92672">+</span> sigma <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>sqrt(T) <span style="color:#f92672">*</span> Z_hist)
+</span></span><span style="display:flex;"><span>    simulated_mean <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(ST)
+</span></span><span style="display:flex;"><span>    simulated_std <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>std(ST)
+</span></span><span style="display:flex;"><span>    simulated_m1sig <span style="color:#f92672">=</span> simulated_mean <span style="color:#f92672">-</span> simulated_std
+</span></span><span style="display:flex;"><span>    simulated_p1sig <span style="color:#f92672">=</span> simulated_mean <span style="color:#f92672">+</span> simulated_std
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># The theoretical forward price at maturity</span>
+</span></span><span style="display:flex;"><span>    forward_T <span style="color:#f92672">=</span> S0 <span style="color:#f92672">*</span> np<span style="color:#f92672">.</span>exp(fwd <span style="color:#f92672">*</span> T)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ax_hist <span style="color:#f92672">=</span> axs[idx, <span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>    ax_hist<span style="color:#f92672">.</span>hist(ST, bins<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>, density<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>, color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;skyblue&#39;</span>, edgecolor<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;black&#39;</span>, alpha<span style="color:#f92672">=</span><span style="color:#ae81ff">0.7</span>)
+</span></span><span style="display:flex;"><span>    ax_hist<span style="color:#f92672">.</span>axvline(simulated_mean, color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;blue&#39;</span>, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>, linewidth<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>,
+</span></span><span style="display:flex;"><span>                    label<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Sim Avg = </span><span style="color:#e6db74">{</span>simulated_mean<span style="color:#e6db74">:</span><span style="color:#e6db74">.2f</span><span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>    ax_hist<span style="color:#f92672">.</span>axvline(forward_T, color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;red&#39;</span>, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>, linewidth<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>,
+</span></span><span style="display:flex;"><span>                    label<span style="color:#f92672">=</span><span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Forward = </span><span style="color:#e6db74">{</span>forward_T<span style="color:#e6db74">:</span><span style="color:#e6db74">.2f</span><span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>    ax_hist<span style="color:#f92672">.</span>axvline(simulated_m1sig, color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;green&#39;</span>, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>, linewidth<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>,
+</span></span><span style="display:flex;"><span>                    label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Avg - 1 SD&#39;</span>)
+</span></span><span style="display:flex;"><span>    ax_hist<span style="color:#f92672">.</span>axvline(simulated_p1sig, color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;green&#39;</span>, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>, linewidth<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>,
+</span></span><span style="display:flex;"><span>                    label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Avg + 1 SD&#39;</span>)
+</span></span><span style="display:flex;"><span>    ax_hist<span style="color:#f92672">.</span>set_xlabel(<span style="color:#e6db74">&#34;Terminal Stock Price&#34;</span>, fontsize<span style="color:#f92672">=</span><span style="color:#ae81ff">8</span>)
+</span></span><span style="display:flex;"><span>    ax_hist<span style="color:#f92672">.</span>set_ylabel(<span style="color:#e6db74">&#34;Probability Density&#34;</span>, fontsize<span style="color:#f92672">=</span><span style="color:#ae81ff">8</span>)
+</span></span><span style="display:flex;"><span>    ax_hist<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Terminal price distribution, Forward rate = </span><span style="color:#e6db74">{</span>fwd<span style="color:#e6db74">:</span><span style="color:#e6db74">.0%</span><span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>, fontsize<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>)
+</span></span><span style="display:flex;"><span>    ax_hist<span style="color:#f92672">.</span>legend()
+</span></span><span style="display:flex;"><span>    ax_hist<span style="color:#f92672">.</span>grid(<span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>plt<span style="color:#f92672">.</span>tight_layout(rect<span style="color:#f92672">=</span>[<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0.93</span>])
+</span></span><span style="display:flex;"><span>plt<span style="color:#f92672">.</span>show()
+</span></span></code></pre></div></div>
+</details>
+<p><img src="/plots_many.png" alt="Diffusion Plots for Different Forward Rates"></p>
+<h2 id="in-sum">In sum</h2>
+<p>This was a long way to say that, for vanilla options, there&rsquo;s a reason why a lot around pricing options revolves around choosing a (forward, vol) pair. These two parameters encompass the main aspects of options pricing<sup id="fnref:7"><a href="#fn:7" class="footnote-ref" role="doc-noteref">7</a></sup>. That is not to say that they encompass everything - far from that - but by simplifying the underlyer dynamics around one key parameter, one can go a long way in thinking about options by focusing on the forward and volatility. This is a much simpler framework than those taught in option courses at schools.</p>
+<p>What&rsquo;s are some practical use cases of this? Well, grossly put, option prices grow with volatility: more vol increases the chances that the option expires in-the-money. Forwards, however, are interesting!</p>
+<ul>
+<li>Call option prices increase with higher forward: the higher the forward, the more the mean expected path of the underlyer will go up. As a result, increasing the forward shifts the terminal value distribution to the right, which makes it more likely that the call expires in-the-money</li>
+<li>Put option prices decrease with higher forward: conversely, if the distribution shifts right, it&rsquo;s less likely that puts expire in-the-money</li>
+</ul>
+<p>This is why options people frequently think in &ldquo;ATMF&rdquo; (at-the-money-forward) terms as opposed to ATM (or ATMS, &ldquo;at-the-money-spot&rdquo;). It&rsquo;s a very convenient place to be as the probability to expiring in the money is close to 50%: ~50% of all possible paths will be below the forward, and ~50% of all possible paths will be above it<sup id="fnref:8"><a href="#fn:8" class="footnote-ref" role="doc-noteref">8</a></sup>.</p>
+<p>Further, realizing that options really are derivatives of the forward sheds light some challenges around hedging. As the forward price embeds the market implied cost of financing of the spot position (at rate \(r\)) and dividend yield (at rate \(d\)), you have that &ldquo;locked in&rdquo;. If either were to change significantly (for example, let&rsquo;s say stock became hard to borrow or management decided to substantially change their dividends policy), your hedge is quite imperfect. This is one of the reasons some dividend markets are liquid: banks are very keen to offload that risk to adventurous counterparties.</p>
+<p>Not only do I hope to have convinced you that options are about the forward not spot, but that thinking in terms of &ldquo;what happens to the general profile of the paths I&rsquo;m simulating&rdquo; when changing a model parameter is an easy hack to sometimes answer tricky questions.</p>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>This is likely the case if you, like me, studied economics or finance. If you were a math or CS person, then you probably were benchmarking to your buddies crunching LeetCode.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>Sheldon Natenberg&rsquo;s &ldquo;Option Volatility &amp; Pricing&rdquo; - Chapter 2 of the 2nd edition.&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>One important caveat that options math nerds will point out is that a lot of what I am throwing around is only true in a &ldquo;risk-neutral&rdquo; sense. That is right, but outside of the scope of this post. If you know what &ldquo;Girsanov theorem&rdquo; is, then you probably stay until too late in the office trying to explain to your trader why they are bleeding vega on that one book even though vols were &ldquo;pretty chill today&rdquo;.&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:4">
+<p>You might wonder: 20.7 seems awfully far from our assumed 20% yearly volatility, did I do something wrong? If I have, then I will kindly point out that GPT o3-mini, with its PhD level knowledge, made the mistake. But assuming I haven&rsquo;t, its worth thinking about what the 20.7 actually means. Hint: I am giving you the arithmetic standard deviation of terminal values, but consider \(S(T)=S_0 ​e^{(r−d−\frac{1}{2}\sigma^2)T+\sigma \sqrt{T}​Z}\), \(Z = N(0,1)\) and \(var[S(T)]=E[S(T)]^2 - E[S(T)^2]\). I leave it to the reader to get there (ha! get rekt).&#160;<a href="#fnref:4" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:5">
+<p>There are plenty of great resources on Put-Call parity out there, so I won&rsquo;t go too deep into it. Like the case for forward pricing, I would encourage you to think about it from a first principles/no arbitrage rather than memorizing the formula - it&rsquo;s a pretty powerful thing.&#160;<a href="#fnref:5" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:6">
+<p>Let&rsquo;s set concerns with borrow rates and that kind of stuff aside.&#160;<a href="#fnref:6" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:7">
+<p>In a real world setting, one would likely take &ldquo;fair&rdquo; (mid) marks for both the forward and vol and add bumps to them in a way that would produce the relevant desired bid or offer for the option package being priced.&#160;<a href="#fnref:7" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:8">
+<p>It&rsquo;s not precisely 50% and, as a result, not exactly a 50-delta option, but not particularly important here.&#160;<a href="#fnref:8" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+
+</main>
+
+  <footer>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<script src="//cdn.jsdelivr.net/npm/@xiee/utils/js/math-code.min.js" defer></script>
+<script src="//cdn.jsdelivr.net/npm/katex/dist/katex.min.js" defer></script>
+<script src="//cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js" defer></script>
+<script src="//cdn.jsdelivr.net/npm/@xiee/utils/js/render-katex.js" defer></script>
+
+<script src="//cdn.jsdelivr.net/npm/@xiee/utils/js/center-img.min.js" defer></script>
+  
+  </footer>
+  </body>
+</html>
+
