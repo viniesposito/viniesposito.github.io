@@ -60,3 +60,5 @@ body {
   code[data-lang=markdown] {
     text-wrap: wrap;
   }
+
+  h3 { font-weight: normal; }
