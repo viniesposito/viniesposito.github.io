@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KQTE8BEMSV"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-KQTE8BEMSV');
+    </script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Skew Issue | Vinicius Esposito</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    
+  </head>
+
+  <body>
+    <nav>
+    <ul class="menu">
+      
+      <li><a href="/">Home</a></li>
+      
+      <li><a href="/notes/">Notes</a></li>
+      
+    </ul>
+    <hr/>
+    </nav>
+
+<div class="article-meta">
+<h1><span class="title">Skew Issue</span></h1>
+
+<h3 class="date">November 22, 2025</h3>
+</div>
+
+<main>
+<p><img src="/rekt_csgo.png" alt="I Got Rekt By a 12 Year Old"></p>
+<p>If, after staring at fictional numbers all day, you, like me, sometimes log in your favorite game to unwind and click some virtual heads only to get destroyed by kids who are years away from having their first facial hair&hellip; that&rsquo;s a skill issue.</p>
+<p>Skew issue<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>, on the other other hand, is what I am naming the fact that you could go pretty far answering quirky vol questions by simply blaming skew for existing. While a bit of a niche meme, it does not seem unreasonable to attack questions around weird behavior of derivatives trading by first wondering how skew can be behind it.</p>
+<p>In any case, here&rsquo;s a list<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup> of questions that I think can be answered (either completely or mostly) with &ldquo;because of skew&rdquo;:</p>
+<ul>
+<li>Why can a delta-hedged option have a persistent drift in P&amp;L even when implied vol stays constant?</li>
+<li>Why is it that buying a calendar spread (in vol space) can land you in being short crash territory?</li>
+<li>Why does delta-hedged vega bleed differ between OTM puts and OTM calls?</li>
+<li>Why does a barrier option earn or lose money before the barrier is even touched?</li>
+<li>Why does forward-starting stuff inherit delta?</li>
+<li>Why is a variance swap short delta if you hedge it with Black-Scholes deltas?</li>
+<li>Why does the replication of a corridor variance swap come with introduction of delta exposure?</li>
+<li>Why does the implied correlation of a basket differ from the average of pairwise implied correlations?</li>
+</ul>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Shout-out to PedroZ for coming up with &ldquo;skew issue&rdquo;, although in a different context.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>Not comprehensive, potentially not correct, and certainly biased towards what I do (I am <em>not</em> an exotics person&hellip;).&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+
+</main>
+
+  <footer>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<script src="//cdn.jsdelivr.net/npm/@xiee/utils/js/math-code.min.js" defer></script>
+<script src="//cdn.jsdelivr.net/npm/katex/dist/katex.min.js" defer></script>
+<script src="//cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js" defer></script>
+<script src="//cdn.jsdelivr.net/npm/@xiee/utils/js/render-katex.js" defer></script>
+
+<script src="//cdn.jsdelivr.net/npm/@xiee/utils/js/center-img.min.js" defer></script>
+  
+  </footer>
+  </body>
+</html>
+
