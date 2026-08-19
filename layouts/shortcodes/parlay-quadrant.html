@@ -1,0 +1,175 @@
+{{- $id := printf "pq-rho-%d" .Ordinal -}}
+<figure class="pq-fig">
+  <style>
+    .pq-fig {
+      --pq-accent: #52bd74;
+      --pq-accent-soft: #cde2fb;
+      --pq-neutral: #f5f5f3;
+      --pq-ink: #111;
+      --pq-muted: #666;
+      --pq-line: #1a1a1a;
+      --pq-border: #666;
+      --pq-grid: #999;
+      --pq-chip: #eee;
+      margin: 2em auto;
+      max-width: 460px;
+    }
+    .pq-fig, .pq-fig * { box-sizing: border-box; }
+    .pq-stats { display: flex; gap: 8px; margin-bottom: 10px; }
+    .pq-stat { flex: 1 1 0; border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; }
+    .pq-stat-label { display: block; font-size: 0.72em; color: var(--pq-muted); line-height: 1.3; }
+    .pq-stat-value { display: block; font-size: 1.15em; font-weight: bold; font-variant-numeric: tabular-nums; color: var(--pq-ink); }
+    .pq-swatch { display: inline-block; width: 9px; height: 9px; background: var(--pq-accent); border: 1px solid var(--pq-line); margin-right: 4px; }
+    .pq-svg { display: block; width: 100%; height: auto; }
+    .pq-cell-name { font-size: 11.5px; fill: #333; }
+    .pq-cell-pct { font-size: 15px; font-weight: bold; fill: var(--pq-ink); font-variant-numeric: tabular-nums; }
+    .pq-axis { font-size: 12px; fill: var(--pq-muted); }
+    .pq-gridlab { font-size: 10.5px; fill: var(--pq-muted); }
+    .pq-controls { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .pq-controls label { font-size: 0.85em; white-space: nowrap; }
+    .pq-controls input[type="range"] { flex: 1 1 auto; min-width: 0; accent-color: #2a78d6; }
+    .pq-controls output { font-variant-numeric: tabular-nums; font-weight: bold; min-width: 3.2em; text-align: right; }
+    .pq-presets { display: flex; gap: 6px; margin-top: 8px; justify-content: center; flex-wrap: wrap; }
+    .pq-presets button { font: inherit; font-size: 0.8em; font-variant-numeric: tabular-nums; background: var(--pq-chip); border: 1px solid transparent; border-radius: 5px; padding: 3px 10px; cursor: pointer; }
+    .pq-presets button:hover { border-color: #bbb; }
+    .pq-presets button.pq-on { background: var(--pq-accent-soft); border-color: var(--pq-accent); }
+    .pq-note { min-height: 2.7em; font-size: 0.82em; color: var(--pq-muted); margin: 8px 0 0; }
+    .pq-fig figcaption { font-size: 0.82em; color: var(--pq-muted); margin-top: 4px; border-top: 1px dashed #ddd; padding-top: 8px; }
+    @media (max-width: 480px) { .pq-stats { flex-wrap: wrap; } .pq-stat { flex: 1 1 45%; } }
+  </style>
+
+  <div class="pq-stats">
+    <div class="pq-stat">
+      <span class="pq-stat-label"><span class="pq-swatch"></span>P(both legs win)</span>
+      <span class="pq-stat-value" data-pq="stat-p">25.0%</span>
+    </div>
+    <div class="pq-stat">
+      <span class="pq-stat-label">Fair parlay odds</span>
+      <span class="pq-stat-value" data-pq="stat-fair">4.00&times;</span>
+    </div>
+    <div class="pq-stat">
+      <span class="pq-stat-label">Legs multiplied (&rho; = 0)</span>
+      <span class="pq-stat-value">4.00&times;</span>
+    </div>
+  </div>
+
+  <svg class="pq-svg" viewBox="0 0 400 332" role="img"
+    aria-label="Unit square of joint outcomes for two 50/50 bets, split into four quadrants. The top-right quadrant, where both legs win, is the parlay's payoff area. Moving the correlation slider transfers area between the diagonal and off-diagonal quadrants while the vertical split between A-loses and A-wins stays fixed at one half.">
+    <title>Parlay payoff area as one quadrant of the joint outcome square</title>
+    <rect data-pq="tl" x="12" y="12" width="140" height="140" fill="var(--pq-neutral)"></rect>
+    <rect data-pq="bl" x="12" y="152" width="140" height="140" fill="var(--pq-accent-soft)"></rect>
+    <rect data-pq="tr" x="152" y="12" width="140" height="140" fill="var(--pq-accent)"></rect>
+    <rect data-pq="br" x="152" y="152" width="140" height="140" fill="var(--pq-neutral)"></rect>
+    <line x1="12" y1="152" x2="292" y2="152" stroke="var(--pq-grid)" stroke-width="1" stroke-dasharray="5 4"></line>
+    <line data-pq="bndl" x1="12" y1="152" x2="152" y2="152" stroke="var(--pq-line)" stroke-width="1.5"></line>
+    <line data-pq="bndr" x1="152" y1="152" x2="292" y2="152" stroke="var(--pq-line)" stroke-width="1.5"></line>
+    <line x1="152" y1="12" x2="152" y2="292" stroke="var(--pq-line)" stroke-width="2.5"></line>
+    <rect x="12" y="12" width="280" height="280" fill="none" stroke="var(--pq-border)" stroke-width="1.5"></rect>
+    <text class="pq-gridlab" x="298" y="149">independence</text>
+    <text class="pq-gridlab" x="298" y="162">grid (&rho; = 0)</text>
+    <text class="pq-axis" x="82" y="314" text-anchor="middle">A loses</text>
+    <text class="pq-axis" x="222" y="314" text-anchor="middle">A wins</text>
+    <text class="pq-cell-name" data-pq="tl-name" x="82" y="76" text-anchor="middle">A loses &middot; B wins</text>
+    <text class="pq-cell-pct" data-pq="tl-pct" x="82" y="95" text-anchor="middle">25.0%</text>
+    <text class="pq-cell-name" data-pq="bl-name" x="82" y="216" text-anchor="middle">Both lose</text>
+    <text class="pq-cell-pct" data-pq="bl-pct" x="82" y="235" text-anchor="middle">25.0%</text>
+    <text class="pq-cell-name" data-pq="tr-name" x="222" y="76" text-anchor="middle">Both win</text>
+    <text class="pq-cell-pct" data-pq="tr-pct" x="222" y="95" text-anchor="middle">25.0%</text>
+    <text class="pq-cell-name" data-pq="br-name" x="222" y="216" text-anchor="middle">A wins &middot; B loses</text>
+    <text class="pq-cell-pct" data-pq="br-pct" x="222" y="235" text-anchor="middle">25.0%</text>
+  </svg>
+
+  <div class="pq-controls">
+    <label for="{{ $id }}">Correlation &rho;</label>
+    <input type="range" id="{{ $id }}" data-pq="slider" min="-1" max="1" step="0.05" value="0">
+    <output for="{{ $id }}" data-pq="readout">0.00</output>
+  </div>
+  <div class="pq-presets" role="group" aria-label="Correlation presets">
+    <button type="button" data-rho="-1">&minus;1</button>
+    <button type="button" data-rho="-0.5">&minus;0.5</button>
+    <button type="button" data-rho="0">0</button>
+    <button type="button" data-rho="0.5">+0.5</button>
+    <button type="button" data-rho="1">+1</button>
+  </div>
+  <p class="pq-note" role="status" data-pq="note">&nbsp;</p>
+
+  <figcaption>
+    Each leg is a single binary outcome with a fixed win probability, and the correlation ρ links them.
+    The default fixes both legs at 50% probability, the case where ρ can span all of [−1, 1]; unequal probabilities shrink that range.
+  </figcaption>
+
+  <script>
+    (function () {
+      var fig = document.currentScript.closest("figure");
+      var $ = function (k) { return fig.querySelector('[data-pq="' + k + '"]'); };
+      var Y0 = 12, S = 280;
+      var cells = {
+        tl: { rect: $("tl"), name: $("tl-name"), pct: $("tl-pct") },
+        bl: { rect: $("bl"), name: $("bl-name"), pct: $("bl-pct") },
+        tr: { rect: $("tr"), name: $("tr-name"), pct: $("tr-pct") },
+        br: { rect: $("br"), name: $("br-name"), pct: $("br-pct") }
+      };
+      var bndl = $("bndl"), bndr = $("bndr");
+      var slider = $("slider"), readout = $("readout"), note = $("note");
+      var statP = $("stat-p"), statFair = $("stat-fair");
+      var buttons = fig.querySelectorAll(".pq-presets button");
+
+      function setCell(c, y, h, prob) {
+        c.rect.setAttribute("y", y.toFixed(1));
+        c.rect.setAttribute("height", Math.max(h, 0).toFixed(1));
+        var cy = y + h / 2;
+        var showName = h >= 44, showPct = h >= 18;
+        c.name.setAttribute("visibility", showName ? "visible" : "hidden");
+        c.pct.setAttribute("visibility", showPct ? "visible" : "hidden");
+        c.name.setAttribute("y", (cy - 6).toFixed(1));
+        c.pct.setAttribute("y", (showName ? cy + 13 : cy + 5).toFixed(1));
+        c.pct.textContent = (prob * 100).toFixed(1) + "%";
+      }
+
+      function fmtRho(r) {
+        var s = Math.abs(r).toFixed(2);
+        return r >= 0.005 ? "+" + s : r <= -0.005 ? "−" + s : "0.00";
+      }
+
+      function update(rho) {
+        rho = Math.min(1, Math.max(-1, rho));
+        var pBoth = 0.25 * (1 + rho); /* p·q + ρ·σ_A·σ_B with p = q = 1/2 */
+        var pOff = 0.25 * (1 - rho);
+        var hDiag = S * 0.5 * (1 + rho);
+        var hOff = S - hDiag;
+
+        setCell(cells.tl, Y0, hOff, pOff);
+        setCell(cells.bl, Y0 + hOff, hDiag, pBoth);
+        setCell(cells.tr, Y0, hDiag, pBoth);
+        setCell(cells.br, Y0 + hDiag, hOff, pOff);
+
+        bndl.setAttribute("y1", (Y0 + hOff).toFixed(1));
+        bndl.setAttribute("y2", (Y0 + hOff).toFixed(1));
+        bndr.setAttribute("y1", (Y0 + hDiag).toFixed(1));
+        bndr.setAttribute("y2", (Y0 + hDiag).toFixed(1));
+
+        statP.textContent = (pBoth * 100).toFixed(1) + "%";
+        statFair.textContent = pBoth < 1e-4 ? "∞" : (1 / pBoth).toFixed(2) + "×";
+        readout.textContent = fmtRho(rho);
+
+        note.textContent =
+          rho >= 0.999 ? "At ρ = +1 the payoff quadrant fills its whole column: the parlay collapses to a single bet on A, fair odds 2.00×." :
+          rho <= -0.999 ? "At ρ = −1 the legs can never both win: the payoff quadrant vanishes, and any price the book quotes is pure margin." :
+          " ";
+
+        buttons.forEach(function (b) {
+          b.classList.toggle("pq-on", Math.abs(parseFloat(b.dataset.rho) - rho) < 1e-9);
+        });
+      }
+
+      slider.addEventListener("input", function () { update(parseFloat(slider.value)); });
+      buttons.forEach(function (b) {
+        b.addEventListener("click", function () {
+          slider.value = b.dataset.rho;
+          update(parseFloat(b.dataset.rho));
+        });
+      });
+      update(parseFloat(slider.value));
+    })();
+  </script>
+</figure>

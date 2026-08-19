@@ -1,0 +1,330 @@
+{{- $id := printf "bc-rho-%d" .Ordinal -}}
+{{- $payoff := or (.Get "payoff") "basket" -}}
+{{- $wo := eq (replace $payoff "-" "") "worstof" -}}
+<figure class="bc-fig" data-payoff="{{ if $wo }}worstof{{ else }}basket{{ end }}">
+  <style>
+    .bc-fig {
+      --bc-accent: #52bd74;
+      --bc-accent-dot: #2f8f55;
+      --bc-accent-ink: #256e43;
+      --bc-wash: #e4f4ea;
+      --bc-dot: #b6b6ae;
+      --bc-ink: #111;
+      --bc-muted: #666;
+      --bc-line: #1a1a1a;
+      --bc-border: #666;
+      --bc-grid: #999;
+      --bc-chip: #eee;
+      margin: 2em auto;
+      max-width: 460px;
+    }
+    .bc-fig, .bc-fig * { box-sizing: border-box; }
+    .bc-stats { display: flex; gap: 8px; margin-bottom: 10px; }
+    .bc-stat { flex: 1 1 0; border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; }
+    .bc-stat-label { display: block; font-size: 0.72em; color: var(--bc-muted); line-height: 1.3; }
+    .bc-stat-value { display: block; font-size: 1.15em; font-weight: bold; font-variant-numeric: tabular-nums; color: var(--bc-ink); }
+    .bc-swatch { display: inline-block; width: 9px; height: 9px; background: var(--bc-accent); border: 1px solid var(--bc-line); margin-right: 4px; }
+    .bc-svg { display: block; width: 100%; height: auto; }
+    .bc-axis { font-size: 12px; fill: var(--bc-muted); }
+    .bc-tick { font-size: 10.5px; fill: var(--bc-muted); }
+    .bc-gridlab { font-size: 10.5px; fill: var(--bc-muted); paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
+    .bc-paylab { font-size: 11.5px; fill: var(--bc-accent-ink); paint-order: stroke; stroke: var(--bc-wash); stroke-width: 3px; stroke-linejoin: round; }
+    .bc-dotmark { fill: var(--bc-dot); opacity: 0.6; }
+    .bc-dotmark.bc-in { fill: var(--bc-accent-dot); opacity: 0.95; }
+    .bc-anim .bc-dotmark { transition: cy 0.5s ease, r 0.5s ease; }
+    .bc-hist { fill: #e2e2da; }
+    .bc-stat-sub { display: block; font-size: 0.72em; color: var(--bc-accent-ink); font-variant-numeric: tabular-nums; line-height: 1.3; }
+    .bc-stat-sub.bc-mut { color: var(--bc-muted); }
+    .bc-controls { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .bc-controls label { font-size: 0.85em; white-space: nowrap; }
+    .bc-controls input[type="range"] { flex: 1 1 auto; min-width: 0; accent-color: #2a78d6; }
+    .bc-controls output { font-variant-numeric: tabular-nums; font-weight: bold; min-width: 3.2em; text-align: right; }
+    .bc-presets { display: flex; gap: 6px; margin-top: 8px; justify-content: center; flex-wrap: wrap; }
+    .bc-presets button { font: inherit; font-size: 0.8em; font-variant-numeric: tabular-nums; background: var(--bc-chip); border: 1px solid transparent; border-radius: 5px; padding: 3px 10px; cursor: pointer; }
+    .bc-presets button:hover { border-color: #bbb; }
+    .bc-presets button.bc-on { background: var(--bc-wash); border-color: var(--bc-accent); }
+    .bc-note { min-height: 2.7em; font-size: 0.82em; color: var(--bc-muted); margin: 8px 0 0; }
+    .bc-fig figcaption { font-size: 0.82em; color: var(--bc-muted); margin-top: 4px; border-top: 1px dashed #ddd; padding-top: 8px; }
+    @media (max-width: 480px) { .bc-stats { flex-wrap: wrap; } .bc-stat { flex: 1 1 45%; } }
+  </style>
+
+  <div class="bc-stats">
+    <div class="bc-stat">
+      <span class="bc-stat-label"><span class="bc-swatch"></span>{{ if $wo }}P(worst-of call pays){{ else }}P(basket call pays){{ end }}</span>
+      <span class="bc-stat-value" data-bc="stat-p">17.3%</span>
+      <span class="bc-stat-sub" data-bc="stat-n">&nbsp;</span>
+    </div>
+    <div class="bc-stat">
+      <span class="bc-stat-label">{{ if $wo }}E[payoff] (worst-of){{ else }}Basket vol{{ end }}</span>
+      <span class="bc-stat-value" data-bc="stat-vol">21.2%</span>
+      {{ if $wo }}<span class="bc-stat-sub bc-mut" data-bc="stat-cmp">&nbsp;</span>{{ end }}
+    </div>
+    <div class="bc-stat">
+      <span class="bc-stat-label">{{ if $wo }}P(each leg up 20%) (fixed){{ else }}Each leg&rsquo;s vol (fixed){{ end }}</span>
+      <span class="bc-stat-value">{{ if $wo }}25.2%{{ else }}30%{{ end }}</span>
+    </div>
+  </div>
+
+  <svg class="bc-svg" viewBox="0 0 410 380" role="img"
+    aria-label="{{ if $wo }}Scatter cloud of the joint one-year returns of two stocks, each with 30 percent volatility. A corner region marks where a worst-of call pays: both stocks must finish up at least 20 percent. Dots inside the corner are shaded. Raising the correlation slider stretches the cloud along the diagonal and pushes more dots into the corner, while the marginal return distributions drawn on the edges never change. In-the-money dots are drawn larger when the payoff is larger, and a faint diagonal marks the same-strike basket call boundary for comparison.{{ else }}Scatter cloud of the joint one-year returns of two stocks, each with 30 percent volatility. A diagonal strike line marks where a call on the 50/50 basket pays; dots beyond it are shaded. Moving the correlation slider stretches the cloud along the diagonal, moving probability mass across the strike line, while the marginal return distributions drawn on the edges never change.{{ end }}">
+    <title>Basket call payoff region over the joint return cloud of two stocks</title>
+    <defs>
+      <clipPath id="{{ $id }}-clip"><rect x="52" y="42" width="280" height="280"></rect></clipPath>
+    </defs>
+    {{ if $wo }}<rect x="223.1" y="42" width="108.9" height="108.9" fill="var(--bc-wash)"></rect>
+    {{ else }}<polygon points="114.2,42 332,259.8 332,42" fill="var(--bc-wash)"></polygon>{{ end }}
+    <line x1="192" y1="42" x2="192" y2="322" stroke="#e3e3de" stroke-width="1"></line>
+    <line x1="52" y1="182" x2="332" y2="182" stroke="#e3e3de" stroke-width="1"></line>
+    <circle cx="192" cy="182" r="46.7" fill="none" stroke="var(--bc-grid)" stroke-width="1" stroke-dasharray="5 4"></circle>
+    {{ if $wo }}<line x1="114.2" y1="42" x2="332" y2="259.8" stroke="var(--bc-grid)" stroke-width="1" stroke-dasharray="2 3"></line>
+    <text class="bc-gridlab" x="148" y="90" text-anchor="middle" transform="rotate(45 148 90)">basket call would pay</text>{{ end }}
+    <g data-bc="dots" clip-path="url(#{{ $id }}-clip)"></g>
+    <ellipse data-bc="contour" cx="192" cy="182" rx="46.7" ry="46.7" fill="none" stroke="#333" stroke-width="1.3" transform="rotate(-45 192 182)"></ellipse>
+    {{ if $wo }}<path d="M223.1 42 V150.9 H332" fill="none" stroke="var(--bc-line)" stroke-width="1.5"></path>
+    {{ else }}<line x1="114.2" y1="42" x2="332" y2="259.8" stroke="var(--bc-line)" stroke-width="1.5"></line>{{ end }}
+    <rect x="52" y="42" width="280" height="280" fill="none" stroke="var(--bc-border)" stroke-width="1.5"></rect>
+    <path data-bc="hist-a" class="bc-hist" d=""></path>
+    <path data-bc="hist-b" class="bc-hist" d=""></path>
+    <path data-bc="marg-a" d="" fill="none" stroke="#888" stroke-width="1.2" stroke-dasharray="3 3"></path>
+    <path data-bc="marg-b" d="" fill="none" stroke="#888" stroke-width="1.2" stroke-dasharray="3 3"></path>
+    <text class="bc-gridlab" x="332" y="18" text-anchor="end">fixed marginals</text>
+    <!-- <text class="bc-gridlab" x="150" y="146" text-anchor="end">&rho; = 0</text> -->
+    <text class="bc-paylab" x="326" y="60" text-anchor="end">{{ if $wo }}worst-of call{{ else }}basket call{{ end }}</text>
+    <text class="bc-paylab" x="326" y="74" text-anchor="end">pays here</text>
+    <text class="bc-paylab" x="326" y="88" text-anchor="end" font-size="10.5">{{ if $wo }}(both up 20%){{ else }}(basket up 20%){{ end }}</text>
+    <line x1="98.7" y1="322" x2="98.7" y2="326" stroke="var(--bc-muted)" stroke-width="1"></line>
+    <line x1="192" y1="322" x2="192" y2="326" stroke="var(--bc-muted)" stroke-width="1"></line>
+    <line x1="285.3" y1="322" x2="285.3" y2="326" stroke="var(--bc-muted)" stroke-width="1"></line>
+    <text class="bc-tick" x="98.7" y="338" text-anchor="middle">&minus;60%</text>
+    <text class="bc-tick" x="192" y="338" text-anchor="middle">0</text>
+    <text class="bc-tick" x="285.3" y="338" text-anchor="middle">+60%</text>
+    <line x1="48" y1="88.7" x2="52" y2="88.7" stroke="var(--bc-muted)" stroke-width="1"></line>
+    <line x1="48" y1="182" x2="52" y2="182" stroke="var(--bc-muted)" stroke-width="1"></line>
+    <line x1="48" y1="275.3" x2="52" y2="275.3" stroke="var(--bc-muted)" stroke-width="1"></line>
+    <text class="bc-tick" x="45" y="92" text-anchor="end">+60%</text>
+    <text class="bc-tick" x="45" y="185.3" text-anchor="end">0</text>
+    <text class="bc-tick" x="45" y="278.6" text-anchor="end">&minus;60%</text>
+    <text class="bc-axis" x="192" y="358" text-anchor="middle">Stock A return</text>
+    <text class="bc-axis" x="14" y="182" text-anchor="middle" transform="rotate(-90 14 182)">Stock B return</text>
+  </svg>
+
+  <div class="bc-controls">
+    <label for="{{ $id }}">Correlation &rho;</label>
+    <input type="range" id="{{ $id }}" data-bc="slider" min="-1" max="1" step="0.05" value="0">
+    <output for="{{ $id }}" data-bc="readout">0.00</output>
+  </div>
+  <div class="bc-presets" role="group" aria-label="Correlation presets">
+    <button type="button" data-rho="-1">&minus;1</button>
+    <button type="button" data-rho="-0.5">&minus;0.5</button>
+    <button type="button" data-rho="0">0</button>
+    <button type="button" data-rho="0.5">+0.5</button>
+    <button type="button" data-rho="1">+1</button>
+  </div>
+  <p class="bc-note" role="status" data-bc="note">&nbsp;</p>
+
+  <figcaption>
+    Each dot is one joint outcome for the two stocks&rsquo; one-year returns (both 30% vol,
+    mean zero); the same random draws are reused as &rho; changes, so the slider reshapes
+    one cloud rather than resampling it. {{ if $wo }}A worst-of call on the pair pays only
+    in the corner where <em>both</em> stocks finish up 20%. {{ else }}A call on the 50/50 basket pays past the diagonal
+    strike line.{{ end }} In-the-money dots are drawn bigger the more the option pays at
+    that outcome.{{ if $wo }} The faint diagonal is the basket call&rsquo;s boundary from the
+    figure above, same strike: the corner sits strictly inside it, and every green dot pays
+    less than the basket call would as the worst leg is never better than the average.
+    The two only meet at &rho; = +1, where &ldquo;worst&rdquo; and &ldquo;average&rdquo;
+    are the same stock.{{ end }} Solid outline: the cloud&rsquo;s one-sigma contour; dashed circle: the same
+    contour at &rho; = 0.
+  </figcaption>
+
+  <script>
+    (function () {
+      var fig = document.currentScript.closest("figure");
+      var $ = function (k) { return fig.querySelector('[data-bc="' + k + '"]'); };
+      var X0 = 52, Y0 = 42, S = 280, LO = -0.9, HI = 0.9;
+      var SIG = 0.3;
+      var WO = fig.dataset.payoff === "worstof";
+      var WK = 0.2; /* strike: +20% on the basket return, or on the worst leg */
+      var PX = S / (HI - LO);
+      var xpx = function (v) { return X0 + (v - LO) * PX; };
+      var ypx = function (v) { return Y0 + S - (v - LO) * PX; };
+
+      var dotsG = $("dots"), contour = $("contour");
+      var slider = $("slider"), readout = $("readout"), note = $("note");
+      var statP = $("stat-p"), statVol = $("stat-vol"), statN = $("stat-n"), statCmp = $("stat-cmp");
+      var buttons = fig.querySelectorAll(".bc-presets button");
+      var NS = "http://www.w3.org/2000/svg";
+
+      /* deterministic draws so the slider reshapes one cloud */
+      var seed = 20260706;
+      function rand() {
+        seed = seed + 0x6D2B79F5 | 0;
+        var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      }
+      function normal() {
+        var u = 1 - rand(), v = rand();
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+      }
+
+      var N = 400, z1 = [], z2 = [], dots = [];
+      var frag = document.createDocumentFragment();
+      for (var i = 0; i < N; i++) {
+        z1.push(normal()); z2.push(normal());
+        var c = document.createElementNS(NS, "circle");
+        c.setAttribute("class", "bc-dotmark");
+        c.setAttribute("r", "2.1");
+        c.setAttribute("cx", xpx(SIG * z1[i]).toFixed(1));
+        frag.appendChild(c);
+        dots.push(c);
+      }
+      dotsG.appendChild(frag);
+
+      /* static marginal density curves on the top and right edges */
+      function bump(horizontal) {
+        var d = [];
+        for (var k = 0; k <= 60; k++) {
+          var t = LO + (HI - LO) * k / 60;
+          var f = 22 * Math.exp(-t * t / (2 * SIG * SIG));
+          d.push((k ? "L" : "M") +
+            (horizontal ? xpx(t).toFixed(1) + " " + (38 - f).toFixed(1)
+                        : (336 + f).toFixed(1) + " " + ypx(t).toFixed(1)));
+        }
+        return d.join(" ");
+      }
+      $("marg-a").setAttribute("d", bump(true));
+      $("marg-b").setAttribute("d", bump(false));
+
+      /* empirical edge histograms, rebuilt from the dots on every update */
+      var histA = $("hist-a"), histB = $("hist-b");
+      var BINS = 24, BW = (HI - LO) / BINS;
+      var HSC = 22 * SIG * Math.sqrt(2 * Math.PI) / (N * BW);
+      function histPath(vals, horizontal) {
+        var counts = [], i, b;
+        for (b = 0; b < BINS; b++) counts.push(0);
+        for (i = 0; i < N; i++) {
+          b = Math.floor((vals[i] - LO) / BW);
+          if (b >= 0 && b < BINS) counts[b]++;
+        }
+        var d = horizontal ? ["M" + xpx(LO).toFixed(1) + " 38"] : ["M336 " + ypx(LO).toFixed(1)];
+        for (b = 0; b < BINS; b++) {
+          var h = Math.min(34, counts[b] * HSC);
+          var hi = LO + (b + 1) * BW;
+          d.push(horizontal
+            ? "V" + (38 - h).toFixed(1) + "H" + xpx(hi).toFixed(1)
+            : "H" + (336 + h).toFixed(1) + "V" + ypx(hi).toFixed(1));
+        }
+        d.push(horizontal ? "V38Z" : "H336Z");
+        return d.join("");
+      }
+      /* stock A's draws never change, so its histogram is built once */
+      histA.setAttribute("d", histPath(z1.map(function (z) { return SIG * z; }), true));
+
+      function erf(x) {
+        var s = x < 0 ? -1 : 1;
+        x = Math.abs(x);
+        var t = 1 / (1 + 0.3275911 * x);
+        var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+        return s * y;
+      }
+      var cdf = function (z) { return 0.5 * (1 + erf(z / Math.SQRT2)); };
+
+      /* P(X >= k, Y >= k), standard bivariate normal: Simpson on
+         ∫ φ(x) Φ̄((k − ρx)/√(1−ρ²)) dx over x in [k, k+8] */
+      function pBoth(k, rho) {
+        if (rho >= 0.999) return 1 - cdf(k);
+        if (rho <= -0.999) return k > 0 ? 0 : 1 - 2 * cdf(k);
+        var s = Math.sqrt(1 - rho * rho), n = 80, h = 8 / n, sum = 0;
+        for (var i = 0; i <= n; i++) {
+          var x = k + i * h;
+          var w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2);
+          sum += w * Math.exp(-x * x / 2) * (1 - cdf((k - rho * x) / s));
+        }
+        return sum * h / (3 * Math.sqrt(2 * Math.PI));
+      }
+
+      /* E[(worst − k)+] via the tail formula ∫ P(min ≥ t) dt */
+      function eWorst(rho) {
+        var n = 40, h = 4 * SIG / n, sum = 0;
+        for (var i = 0; i <= n; i++) {
+          var w = (i === 0 || i === n) ? 1 : (i % 2 ? 4 : 2);
+          sum += w * pBoth((WK + i * h) / SIG, rho);
+        }
+        return sum * h / 3;
+      }
+      /* E[(basket − k)+], Bachelier-style closed form */
+      function eBasket(rho) {
+        var sb = SIG * Math.sqrt((1 + rho) / 2);
+        if (sb < 1e-9) return 0;
+        var k = WK / sb;
+        return sb * Math.exp(-k * k / 2) / Math.sqrt(2 * Math.PI) - WK * (1 - cdf(k));
+      }
+
+      function fmtRho(r) {
+        var s = Math.abs(r).toFixed(2);
+        return r >= 0.005 ? "+" + s : r <= -0.005 ? "−" + s : "0.00";
+      }
+
+      function update(rho) {
+        rho = Math.min(1, Math.max(-1, rho));
+        var mix = Math.sqrt(Math.max(0, 1 - rho * rho));
+        var yv = [], itm = 0;
+        for (var i = 0; i < N; i++) {
+          var x = SIG * z1[i];
+          var y = SIG * (rho * z1[i] + mix * z2[i]);
+          var pay = (WO ? Math.min(x, y) : (x + y) / 2) - WK;
+          var isIn = pay >= 0;
+          if (isIn) itm++;
+          yv.push(y);
+          dots[i].setAttribute("cy", ypx(y).toFixed(1));
+          dots[i].setAttribute("r", isIn ? (2.2 + 4 * Math.sqrt(pay)).toFixed(1) : "2.1");
+          dots[i].classList.toggle("bc-in", isIn);
+        }
+        histB.setAttribute("d", histPath(yv, false));
+        statN.textContent = itm + " of " + N + " dots";
+
+        contour.setAttribute("rx", (SIG * PX * Math.sqrt(1 + rho)).toFixed(1));
+        contour.setAttribute("ry", (SIG * PX * Math.sqrt(Math.max(0, 1 - rho))).toFixed(1));
+
+        var pITM;
+        if (WO) {
+          pITM = pBoth(WK / SIG, rho);
+          statVol.textContent = (100 * eWorst(rho)).toFixed(1) + "%";
+          statCmp.textContent = "vs basket call: " + (100 * eBasket(rho)).toFixed(1) + "%";
+        } else {
+          var sb = SIG * Math.sqrt((1 + rho) / 2);
+          pITM = sb < 1e-9 ? 0 : 1 - cdf(WK / sb);
+          statVol.textContent = (100 * sb).toFixed(1) + "%";
+        }
+        statP.textContent = (pITM * 100).toFixed(1) + "%";
+        readout.textContent = fmtRho(rho);
+
+        note.textContent =
+          rho >= 0.999 ? (WO
+            ? "At ρ = +1 the legs are the same bet: worst equals average, so the worst-of finally pays exactly what the basket call does."
+            : "At ρ = +1 the two stocks are the same bet: the cloud sits on the diagonal and the basket is just one 30-vol stock.") :
+          rho <= -0.999 ? (WO
+            ? "At ρ = −1 one leg is up exactly when the other is down, so both can never clear +20% — the parlay that never hits."
+            : "At ρ = −1 the legs hedge each other perfectly: the basket never moves, and the basket call can never pay — the parlay that never hits, in continuous clothing.") :
+          "Drag ρ: the cloud reshapes and the green count moves, but the edge histograms stay put.";
+
+        buttons.forEach(function (b) {
+          b.classList.toggle("bc-on", Math.abs(parseFloat(b.dataset.rho) - rho) < 1e-9);
+        });
+      }
+
+      slider.addEventListener("input", function () {
+        fig.classList.remove("bc-anim");
+        update(parseFloat(slider.value));
+      });
+      buttons.forEach(function (b) {
+        b.addEventListener("click", function () {
+          fig.classList.add("bc-anim");
+          slider.value = b.dataset.rho;
+          update(parseFloat(b.dataset.rho));
+        });
+      });
+      update(parseFloat(slider.value));
+    })();
+  </script>
+</figure>

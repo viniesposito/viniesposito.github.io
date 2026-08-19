@@ -1,0 +1,560 @@
+{{- $id := printf "dm-%d" .Ordinal -}}
+<figure class="dm-fig" data-widget="dispersion-matrix">
+  <style>
+    .dm-fig {
+      --dm-blue: #2f6f9f;
+      --dm-blue-soft: #dceaf2;
+      --dm-green: #2f8f55;
+      --dm-red: #b74f42;
+      --dm-ink: #191918;
+      --dm-muted: #6b6962;
+      --dm-line: #d5d3ca;
+      --dm-cell: #f1f0eb;
+      --dm-wash: #fafaf7;
+      margin: 3em auto;
+      max-width: 720px;
+      color: var(--dm-ink);
+      font-variant-numeric: tabular-nums;
+      hyphens: none;
+    }
+    .dm-fig, .dm-fig * { box-sizing: border-box; }
+    .dm-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 10px;
+    }
+    .dm-kicker {
+      color: var(--dm-muted);
+      font-size: 0.72em;
+    }
+    .dm-title {
+      margin: 0;
+      font-size: 1.18em;
+      font-weight: 600;
+      line-height: 1.25;
+      text-align: right;
+    }
+    .dm-steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 1px solid var(--dm-line);
+      border-bottom: 1px solid var(--dm-line);
+      margin-bottom: 18px;
+    }
+    .dm-step {
+      min-width: 0;
+      border: 0;
+      border-right: 1px solid var(--dm-line);
+      border-radius: 0;
+      padding: 7px 4px 8px;
+      color: var(--dm-muted);
+      background: transparent;
+      font: inherit;
+      font-size: 0.72em;
+      line-height: 1.15;
+      cursor: pointer;
+    }
+    .dm-step:last-child { border-right: 0; }
+    .dm-step b {
+      display: block;
+      margin-bottom: 3px;
+      color: inherit;
+      font-size: 0.9em;
+      font-weight: 500;
+    }
+    .dm-step:hover { color: var(--dm-ink); background: var(--dm-wash); }
+    .dm-step[aria-current="step"] {
+      color: #fff;
+      background: var(--dm-ink);
+    }
+    .dm-shell {
+      display: grid;
+      grid-template-columns: minmax(280px, 1.08fr) minmax(250px, 0.92fr);
+      gap: 24px;
+      align-items: start;
+    }
+    .dm-visual { min-width: 0; }
+    .dm-svg {
+      display: block;
+      width: 100%;
+      max-width: 370px;
+      height: auto;
+      margin: 0 auto;
+    }
+    .dm-cell-bg { fill: var(--dm-cell); stroke: #deddd7; stroke-width: 0.7; }
+    .dm-cell-mark {
+      transition: x 320ms ease, y 320ms ease, width 320ms ease, height 320ms ease, fill 220ms ease, stroke 220ms ease;
+    }
+    .dm-axis-label { fill: var(--dm-muted); font-size: 9.5px; }
+    .dm-matrix-label { fill: var(--dm-muted); font-size: 10px; }
+    .dm-legend {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      min-height: 2.7em;
+      margin-top: 2px;
+      color: var(--dm-muted);
+      font-size: 0.76em;
+      line-height: 1.35;
+    }
+    .dm-legend-item { flex: 0 1 auto; }
+    .dm-swatch {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      margin-right: 5px;
+      border: 1px solid rgba(0, 0, 0, 0.28);
+      vertical-align: -1px;
+    }
+    .dm-swatch-a { background: var(--dm-blue); }
+    .dm-swatch-b { background: var(--dm-blue-soft); }
+    .dm-story { min-width: 0; }
+    .dm-copy {
+      min-height: 6.6em;
+      margin: 0 0 10px;
+      line-height: 1.48;
+    }
+    .dm-equation {
+      display: flex;
+      align-items: center;
+      min-height: 3.2em;
+      padding: 7px 0;
+      border-top: 1px solid var(--dm-line);
+      border-bottom: 1px solid var(--dm-line);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.22em;
+      line-height: 1.35;
+    }
+    .dm-equation .dm-blue { color: var(--dm-blue); }
+    .dm-equation .dm-green { color: var(--dm-green); }
+    .dm-equation .dm-red { color: var(--dm-red); }
+    .dm-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin: 11px 0 8px;
+    }
+    .dm-metric { min-width: 0; padding: 0 8px; }
+    .dm-metric:first-child { padding-left: 0; }
+    .dm-metric:last-child { padding-right: 0; }
+    .dm-metric + .dm-metric { border-left: 1px solid var(--dm-line); }
+    .dm-metric-label {
+      display: block;
+      min-height: 2.5em;
+      color: var(--dm-muted);
+      font-size: 0.69em;
+      line-height: 1.25;
+    }
+    .dm-metric-value {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: 1.02em;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    .dm-control-space { min-height: 91px; padding-top: 4px; }
+    .dm-control { display: none; }
+    .dm-control.dm-on { display: block; }
+    .dm-control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .dm-control-row label { flex: 0 0 auto; font-size: 0.78em; white-space: nowrap; }
+    .dm-control-row input[type="range"] {
+      min-width: 0;
+      flex: 1 1 auto;
+      accent-color: var(--dm-blue);
+    }
+    .dm-control-row output {
+      min-width: 3.8em;
+      color: var(--dm-ink);
+      font-weight: 600;
+      text-align: right;
+    }
+    .dm-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 7px;
+    }
+    .dm-presets button {
+      border: 1px solid transparent;
+      border-radius: 4px;
+      padding: 3px 8px;
+      color: var(--dm-ink);
+      background: #ecebe6;
+      font: inherit;
+      font-size: 0.7em;
+      cursor: pointer;
+    }
+    .dm-presets button:hover { border-color: #aaa79e; }
+    .dm-presets button.dm-on { border-color: var(--dm-blue); background: var(--dm-blue-soft); }
+    .dm-control-note {
+      min-height: 2.7em;
+      margin: 7px 0 0;
+      color: var(--dm-muted);
+      font-size: 0.74em;
+      line-height: 1.35;
+    }
+    .dm-nav {
+      display: grid;
+      grid-template-columns: 34px 1fr 34px;
+      align-items: center;
+      gap: 9px;
+      margin-top: 13px;
+    }
+    .dm-nav button {
+      width: 34px;
+      height: 30px;
+      border: 1px solid var(--dm-line);
+      border-radius: 4px;
+      color: var(--dm-ink);
+      background: #fff;
+      font: inherit;
+      font-size: 1.05em;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .dm-nav button:hover:not(:disabled) { border-color: var(--dm-muted); background: var(--dm-wash); }
+    .dm-nav button:disabled { color: #bbb8ae; cursor: default; }
+    .dm-nav-status { color: var(--dm-muted); font-size: 0.72em; text-align: center; }
+    .dm-live {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .dm-fig figcaption {
+      margin-top: 13px;
+      padding-top: 8px;
+      border-top: 1px dashed #ddd;
+      color: var(--dm-muted);
+      font-size: 0.82em;
+      line-height: 1.45;
+    }
+    @media (max-width: 650px) {
+      .dm-head { display: block; }
+      .dm-title { margin-top: 3px; text-align: left; }
+      .dm-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .dm-shell { grid-template-columns: 1fr; gap: 8px; }
+      .dm-svg { max-width: 345px; }
+      .dm-copy { min-height: 0; }
+      .dm-control-space { min-height: 88px; }
+    }
+    @media (max-width: 390px) {
+      .dm-step { font-size: 0.7em; }
+      .dm-metric { padding: 0 5px; }
+      .dm-metric-label { font-size: 0.64em; }
+      .dm-metric-value { font-size: 0.91em; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dm-cell-mark { transition: none; }
+    }
+  </style>
+
+  <div class="dm-head">
+    <span class="dm-kicker">isolating correlation exposure</span>
+    <h3 class="dm-title" data-dm="title">The anatomy of index variance</h3>
+  </div>
+
+  <div class="dm-steps" role="tablist" aria-label="Dispersion construction steps">
+    <button class="dm-step" type="button" role="tab" data-stage="0" aria-current="step"><b>1</b>Sell index</button>
+    <button class="dm-step" type="button" role="tab" data-stage="1"><b>2</b>Buy stocks</button>
+    <button class="dm-step" type="button" role="tab" data-stage="2"><b>3</b>Pure correlation</button>
+  </div>
+
+  <div class="dm-shell">
+    <div class="dm-visual">
+      <svg class="dm-svg" data-dm="svg" viewBox="0 0 360 330" role="img"
+        aria-label="A ten by ten covariance matrix. Diagonal cells represent individual stock variance and off-diagonal cells represent pairwise covariance.">
+        <title>The covariance matrix behind an index variance trade</title>
+        <text class="dm-matrix-label" x="185" y="12" text-anchor="middle">stock in column</text>
+        <text class="dm-matrix-label" x="12" y="160" text-anchor="middle" transform="rotate(-90 12 160)">stock in row</text>
+        <g data-dm="grid"></g>
+      </svg>
+      <div class="dm-legend" aria-hidden="true">
+        <span class="dm-legend-item"><i class="dm-swatch dm-swatch-a" data-dm="swatch-a"></i><span data-dm="legend-a">Diagonal: individual variance</span></span>
+        <span class="dm-legend-item"><i class="dm-swatch dm-swatch-b" data-dm="swatch-b"></i><span data-dm="legend-b">Off-diagonal: covariance</span></span>
+      </div>
+    </div>
+
+    <div class="dm-story">
+      <p class="dm-copy" data-dm="copy">An index contains each stock's own variance on the diagonal and every pair's covariance off it. Correlation fills only the off-diagonal cells.</p>
+      <div class="dm-equation" data-dm="equation" aria-label="Index variance equals D plus rho C">
+        <span class="dm-blue">&sigma;<sub>I</sub><sup>2</sup></span>&nbsp;=&nbsp;D&nbsp;+&nbsp;<span class="dm-blue">&rho;C</span>
+      </div>
+
+      <div class="dm-metrics" aria-label="Current values">
+        <div class="dm-metric"><span class="dm-metric-label" data-dm="metric-label-0">Diagonal D</span><span class="dm-metric-value" data-dm="metric-value-0">90</span></div>
+        <div class="dm-metric"><span class="dm-metric-label" data-dm="metric-label-1">Co-movement &rho;C</span><span class="dm-metric-value" data-dm="metric-value-1">405</span></div>
+        <div class="dm-metric"><span class="dm-metric-label" data-dm="metric-label-2">Index vol</span><span class="dm-metric-value" data-dm="metric-value-2">22.25%</span></div>
+      </div>
+
+      <div class="dm-control-space">
+        <div class="dm-control dm-on" data-control="none">
+          <p class="dm-control-note" data-dm="none-note"></p>
+        </div>
+
+        <div class="dm-control" data-control="scenario">
+          <div class="dm-presets" data-presets="scenario" role="group" aria-label="Pure correlation stress tests">
+            <button type="button" data-scenario="strike">At strike</button>
+            <button type="button" data-scenario="vol">All vols +10%</button>
+            <button type="button" data-scenario="correlation">&rho; realizes 0.30</button>
+          </div>
+          <p class="dm-control-note" data-dm="scenario-note"></p>
+        </div>
+      </div>
+
+      <div class="dm-nav">
+        <button type="button" data-dm="prev" title="Previous step" aria-label="Previous step">&larr;</button>
+        <span class="dm-nav-status" data-dm="nav-status">Step 1 of 3</span>
+        <button type="button" data-dm="next" title="Next step" aria-label="Next step">&rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="dm-live" data-dm="live" aria-live="polite"></p>
+  <figcaption>
+    A stylized ten-stock equal-weight index, with every stock at 30% volatility and implied correlation at 0.50. Cell area always represents a variance contribution; red is sold and green is bought. The same decomposition applies to unequal weights and volatilities.
+  </figcaption>
+  <noscript>This interactive figure decomposes index variance into individual-stock variance and pairwise covariance, then uses the same matrix to construct a theta-neutral dispersion trade.</noscript>
+
+  <script>
+    (function () {
+      var fig = document.currentScript.closest("figure");
+      if (!fig || fig.dataset.dmMounted) return;
+      fig.dataset.dmMounted = "1";
+
+      var $ = function (key) { return fig.querySelector('[data-dm="' + key + '"]'); };
+      var $$ = function (selector) { return Array.prototype.slice.call(fig.querySelectorAll(selector)); };
+      var NS = "http://www.w3.org/2000/svg";
+      var N = 10, D = 90, C = 810, UNIT = 9, MAX_CONTRIBUTION = 50;
+      var X0 = 64, Y0 = 34, CELL = 22, PITCH = 25;
+      var COLORS = { blue: "#2f6f9f", green: "#2f8f55", red: "#b74f42" };
+
+      var state = { stage: 0, rhoI: 0.5, scenario: "strike", buildPhase: 2 };
+      var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var buildTimers = [];
+      var grid = $("grid"), svg = $("svg"), cells = [];
+      var title = $("title"), copy = $("copy"), equation = $("equation"), live = $("live");
+      var legendA = $("legend-a"), legendB = $("legend-b");
+      var swatchA = $("swatch-a"), swatchB = $("swatch-b");
+      var prev = $("prev"), next = $("next"), navStatus = $("nav-status");
+      var steps = $$(".dm-step");
+      var controls = $$(".dm-control");
+      var metricLabels = [$("metric-label-0"), $("metric-label-1"), $("metric-label-2")];
+      var metricValues = [$("metric-value-0"), $("metric-value-1"), $("metric-value-2")];
+
+      function el(name, attrs) {
+        var node = document.createElementNS(NS, name);
+        Object.keys(attrs || {}).forEach(function (key) { node.setAttribute(key, attrs[key]); });
+        return node;
+      }
+
+      var frag = document.createDocumentFragment();
+      for (var k = 0; k < N; k++) {
+        var colLabel = el("text", { x: X0 + k * PITCH + CELL / 2, y: Y0 - 9, "text-anchor": "middle", "class": "dm-axis-label" });
+        colLabel.textContent = String.fromCharCode(65 + k);
+        frag.appendChild(colLabel);
+        var rowLabel = el("text", { x: X0 - 10, y: Y0 + k * PITCH + CELL / 2 + 3, "text-anchor": "middle", "class": "dm-axis-label" });
+        rowLabel.textContent = String.fromCharCode(65 + k);
+        frag.appendChild(rowLabel);
+      }
+
+      for (var i = 0; i < N; i++) {
+        for (var j = 0; j < N; j++) {
+          var x = X0 + j * PITCH, y = Y0 + i * PITCH;
+          var group = el("g");
+          var bg = el("rect", { x: x, y: y, width: CELL, height: CELL, rx: 1, "class": "dm-cell-bg" });
+          var mark = el("rect", { x: x + CELL / 2, y: y + CELL / 2, width: 0, height: 0, rx: 1, "class": "dm-cell-mark" });
+          var tip = el("title");
+          group.appendChild(bg);
+          group.appendChild(mark);
+          group.appendChild(tip);
+          frag.appendChild(group);
+          cells.push({ i: i, j: j, x: x, y: y, mark: mark, tip: tip });
+        }
+      }
+      grid.appendChild(frag);
+
+      function clamp(value, low, high) { return Math.min(high, Math.max(low, value)); }
+      function rhoC() { return state.rhoI * C; }
+      function indexVariance() { return D + rhoC(); }
+      function scenarioData() {
+        if (state.scenario === "vol") return { diagonal: 490.05, offDiagonal: -490.05, rho: 0.5, pnl: 0, label: "all vols +10%" };
+        if (state.scenario === "correlation") return { diagonal: 405, offDiagonal: -243, rho: 0.3, pnl: 162, label: "correlation 0.30" };
+        return { diagonal: 405, offDiagonal: -405, rho: 0.5, pnl: 0, label: "at strike" };
+      }
+      function near(a, b, tolerance) { return Math.abs(a - b) <= (tolerance || 0.006); }
+      function fmt(value, decimals) { return Number(value).toFixed(decimals == null ? 1 : decimals); }
+      function signed(value, decimals) {
+        var d = decimals == null ? 1 : decimals;
+        if (Math.abs(value) < Math.pow(10, -d) / 2) return (0).toFixed(d);
+        return (value > 0 ? "+" : "\u2212") + Math.abs(value).toFixed(d);
+      }
+      function fmtRho(value) { return value.toFixed(2); }
+
+      function setMetrics(items) {
+        items.forEach(function (item, idx) {
+          metricLabels[idx].innerHTML = item[0];
+          metricValues[idx].textContent = item[1];
+        });
+      }
+
+      function exposureValue(cell) {
+        var diagonal = cell.i === cell.j;
+        if (state.stage === 0) return diagonal ? -UNIT : -state.rhoI * UNIT;
+        if (state.stage === 1) {
+          if (state.buildPhase === 0) return diagonal ? -UNIT : -state.rhoI * UNIT;
+          if (state.buildPhase === 1) return diagonal ? 0 : -state.rhoI * UNIT;
+          return diagonal ? 40.5 : -state.rhoI * UNIT;
+        }
+        var scenario = scenarioData();
+        return diagonal ? scenario.diagonal / N : scenario.offDiagonal / (N * (N - 1));
+      }
+
+      function contributionSize(value) {
+        var fraction = clamp(Math.abs(value) / MAX_CONTRIBUTION, 0, 1);
+        return (CELL - 2) * Math.sqrt(fraction);
+      }
+
+      function setCellRect(rect, cell, size) {
+        rect.setAttribute("x", (cell.x + (CELL - size) / 2).toFixed(2));
+        rect.setAttribute("y", (cell.y + (CELL - size) / 2).toFixed(2));
+        rect.setAttribute("width", size.toFixed(2));
+        rect.setAttribute("height", size.toFixed(2));
+      }
+
+      function renderMatrix() {
+        cells.forEach(function (cell) {
+          var diagonal = cell.i === cell.j;
+          var value = exposureValue(cell);
+          var size = contributionSize(value);
+
+          cell.mark.setAttribute("stroke", "none");
+          cell.mark.setAttribute("stroke-width", "0");
+          cell.mark.setAttribute("fill", value >= 0 ? COLORS.green : COLORS.red);
+          setCellRect(cell.mark, cell, size);
+          cell.tip.textContent = (diagonal ? "Diagonal contribution" : "Off-diagonal contribution") + ": " + signed(value, 2);
+        });
+      }
+
+      function showControl(name) {
+        controls.forEach(function (control) { control.classList.toggle("dm-on", control.dataset.control === name); });
+      }
+
+      function setLegend(a, b, colorA, colorB) {
+        legendA.textContent = a;
+        legendB.textContent = b;
+        swatchA.style.background = colorA;
+        swatchB.style.background = colorB;
+        swatchA.style.border = "1px solid rgba(0, 0, 0, 0.28)";
+        swatchB.style.border = "1px solid rgba(0, 0, 0, 0.28)";
+      }
+
+      function renderStory() {
+        if (state.stage === 0) {
+          title.textContent = "Sell index variance";
+          copy.textContent = "Shorting 1 unit of index variance = selling the whole matrix: each stock's own variance on the diagonal and every pair's covariance off it.";
+          equation.innerHTML = '<span class="dm-red">&minus;&sigma;<sub>I</sub><sup>2</sup></span>&nbsp;=&nbsp;<span class="dm-red">&minus;D&nbsp;&minus;&nbsp;&rho;C</span>';
+          setMetrics([["Index variance notional", "1.00 sold"], ["Index vol", fmt(Math.sqrt(indexVariance()), 2) + "%"], ["Variance exposure", signed(-indexVariance(), 0)]]);
+          setLegend("Diagonal sold: " + signed(-D, 0), "Covariance sold: " + signed(-rhoC(), 0), COLORS.red, COLORS.red);
+          showControl("none");
+          $("none-note").textContent = "One index leg is short 495 of variance exposure across all 100 cells.";
+        } else if (state.stage === 1) {
+          title.textContent = "Neutralize the diagonal";
+          copy.textContent = "Single-stock variance can only land on the diagonal. Buy enough that the two legs carry equal and opposite variance exposure: +495 against −495.";
+          equation.innerHTML = '<span class="dm-green">0.55&nbsp;&times;&nbsp;30<sup>2</sup></span>&nbsp;=&nbsp;<span class="dm-red">1.00&nbsp;&times;&nbsp;22.25<sup>2</sup></span>&nbsp;=&nbsp;495';
+          setMetrics([["Index notional sold", "1.00"], ["Stock notional bought", "0.55"], ["Variance exposure", "matched"]]);
+          if (state.buildPhase === 0) setLegend("Index variance: \u2212495", "Stock variance: 0", COLORS.red, "#b9b7af");
+          else if (state.buildPhase === 1) setLegend("First +90 cancels D", "Covariance remains: \u2212405", "#b9b7af", COLORS.red);
+          else setLegend("Extra diagonal: +405", "Off-diagonal: \u2212405", COLORS.green, COLORS.red);
+          showControl("none");
+          $("none-note").textContent = "Single-stock vol carries more variance per unit, so we need less stock notional. Implied correlation is the exchange rate that makes the two legs theta-neutral.";
+        } else {
+          var scenario = scenarioData();
+          title.textContent = "The theta-neutral book";
+          copy.textContent = "What remains is simply correlation and, since theta is the rent paid for realized variance exposure, equal variance exposure implies a theta-neutral portfolio.";
+          if (state.scenario === "vol") equation.innerHTML = 'same &rho;:&nbsp;<span class="dm-green">+599<sub>stocks</sub></span>&nbsp;<span class="dm-red">&minus;&nbsp;599<sub>index</sub></span>&nbsp;=&nbsp;0';
+          else if (state.scenario === "correlation") equation.innerHTML = '&rho;: 0.50 &rarr; 0.30:&nbsp;<span class="dm-green">+495</span>&nbsp;<span class="dm-red">&minus;&nbsp;333</span>&nbsp;=&nbsp;+162';
+          else equation.innerHTML = '<span class="dm-green">+495<sub>stocks</sub></span>&nbsp;<span class="dm-red">&minus;&nbsp;495<sub>index</sub></span>&nbsp;=&nbsp;0&nbsp;&rArr;&nbsp;&theta;<sub>net</sub>&nbsp;=&nbsp;0';
+          setMetrics([["Scenario", scenario.label], ["Realized &rho;", fmtRho(scenario.rho)], ["Trade P&amp;L", signed(scenario.pnl, 0)]]);
+          setLegend("Long diagonal: +" + fmt(scenario.diagonal, 0), "Short off-diagonal: " + signed(scenario.offDiagonal, 0), COLORS.green, COLORS.red);
+          showControl("scenario");
+          $("scenario-note").textContent = state.scenario === "vol" ? "Both sides grow by the same 21%; the balance stays level." : state.scenario === "correlation" ? "Only the off-diagonal shrinks, so the short-correlation trade earns +162." : "At the strike, long and short theta exactly balance.";
+        }
+      }
+
+      function renderControls() {
+        $$("[data-presets='scenario'] button").forEach(function (button) {
+          button.classList.toggle("dm-on", button.dataset.scenario === state.scenario);
+        });
+      }
+
+      function renderNav() {
+        steps.forEach(function (button, idx) {
+          if (idx === state.stage) button.setAttribute("aria-current", "step");
+          else button.removeAttribute("aria-current");
+          button.setAttribute("aria-selected", idx === state.stage ? "true" : "false");
+        });
+        prev.disabled = state.stage === 0;
+        next.disabled = state.stage === 2;
+        navStatus.textContent = "Step " + (state.stage + 1) + " of 3";
+      }
+
+      function render() {
+        renderStory();
+        renderControls();
+        renderMatrix();
+        renderNav();
+        var summary = title.textContent + ". " + copy.textContent + " " + metricLabels.map(function (label, idx) { return label.textContent + " " + metricValues[idx].textContent; }).join(". ");
+        svg.setAttribute("aria-label", summary);
+        live.textContent = summary;
+      }
+
+      function setStage(stage) {
+        buildTimers.forEach(function (timer) { clearTimeout(timer); });
+        buildTimers = [];
+        state.stage = clamp(stage, 0, 2);
+        state.buildPhase = 2;
+        if (state.stage === 1) state.buildPhase = reducedMotion ? 2 : 0;
+        if (state.stage === 2) state.scenario = "strike";
+        render();
+        if (state.stage === 1 && !reducedMotion) {
+          buildTimers.push(setTimeout(function () {
+            if (state.stage !== 1) return;
+            state.buildPhase = 1;
+            renderMatrix();
+            setLegend("First +90 cancels D", "Covariance remains: \u2212405", "#b9b7af", COLORS.red);
+          }, 420));
+          buildTimers.push(setTimeout(function () {
+            if (state.stage !== 1) return;
+            state.buildPhase = 2;
+            renderMatrix();
+            setLegend("Extra diagonal: +405", "Off-diagonal: \u2212405", COLORS.green, COLORS.red);
+          }, 850));
+        }
+      }
+
+      steps.forEach(function (button) {
+        button.addEventListener("click", function () { setStage(parseInt(button.dataset.stage, 10)); });
+      });
+      prev.addEventListener("click", function () { setStage(state.stage - 1); });
+      next.addEventListener("click", function () { setStage(state.stage + 1); });
+
+      $$("[data-presets='scenario'] button").forEach(function (button) {
+        button.addEventListener("click", function () {
+          state.scenario = button.dataset.scenario;
+          render();
+        });
+      });
+
+      render();
+    })();
+  </script>
+</figure>
