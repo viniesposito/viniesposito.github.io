@@ -1,0 +1,8 @@
+{
+  // Markdown formatting corrupts KaTeX (underscore subscripts get rewritten
+  // as emphasis) — never auto-format markdown in this repo
+  "[markdown]": {
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false
+  }
+}

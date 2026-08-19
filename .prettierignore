@@ -1,0 +1,3 @@
+# KaTeX in markdown gets corrupted by markdown formatting (underscores
+# rewritten as emphasis) — keep formatters away from content
+content/

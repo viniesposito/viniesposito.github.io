@@ -1,26 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>Home on Vinicius Esposito</title>
-    <link>//localhost:1313/</link>
-    <description>Recent content in Home on Vinicius Esposito</description>
-    <generator>Hugo</generator>
-    <language>en-us</language>
-    <lastBuildDate>Sat, 22 Nov 2025 16:57:14 -0500</lastBuildDate>
-    <atom:link href="//localhost:1313/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Skew Issue</title>
-      <link>//localhost:1313/notes/skew-issue/</link>
-      <pubDate>Sat, 22 Nov 2025 16:57:14 -0500</pubDate>
-      <guid>//localhost:1313/notes/skew-issue/</guid>
-      <description>&lt;p&gt;&lt;img src=&#34;//localhost:1313/rekt_csgo.png&#34; alt=&#34;I Got Rekt By a 12 Year Old&#34;&gt;&lt;/p&gt;&#xA;&lt;p&gt;If, after staring at fictional numbers all day, you, like me, sometimes log in your favorite game to unwind and click some virtual heads only to get destroyed by kids who are years away from having their first facial hair&amp;hellip; that&amp;rsquo;s a skill issue.&lt;/p&gt;&#xA;&lt;p&gt;Skew issue&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;, on the other other hand, is what I am naming the fact that you could go pretty far answering quirky vol questions by simply blaming skew for existing. While a bit of a niche meme, it does not seem unreasonable to attack questions around weird behavior of derivatives trading by first wondering how skew can be behind it.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>Forwards Are All You Need</title>
-      <link>//localhost:1313/notes/forwards-are-all-you-need/</link>
-      <pubDate>Mon, 10 Feb 2025 21:20:50 -0500</pubDate>
-      <guid>//localhost:1313/notes/forwards-are-all-you-need/</guid>
-      <description>&lt;p&gt;&lt;img src=&#34;//localhost:1313/always_has_been.jpg&#34; alt=&#34;Always Has Been&#34;&gt;&lt;/p&gt;&#xA;&lt;p&gt;If you have taken a course on options, it&amp;rsquo;s likely you have gone through one or multiple derivations of Black-Scholes. Odds are you stared at Ito&amp;rsquo;s Lemma for a few minutes and wondered why you didn&amp;rsquo;t instead join your friends in brute forcing into your brain a walk-through of &amp;ldquo;what happens to the three financial statements when depreciation goes up by $10&amp;rdquo; &lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;. But you persevered. You graduated, landed a job in NYC, and moved into an East Village apartment, which, like a Mayan temple, only gets sunlight once a year in the winter solstice.&lt;/p&gt;</description>
-    </item>
-  </channel>
-</rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Home on Vinicius Esposito</title><link>https://viniciusesposito.com/</link><description>Recent content in Home on Vinicius Esposito</description><generator>Hugo</generator><language>en-us</language><lastBuildDate>Sat, 22 Nov 2025 16:57:14 -0500</lastBuildDate><atom:link href="https://viniciusesposito.com/index.xml" rel="self" type="application/rss+xml"/><item><title>Skew Issue</title><link>https://viniciusesposito.com/notes/skew-issue/</link><pubDate>Sat, 22 Nov 2025 16:57:14 -0500</pubDate><guid>https://viniciusesposito.com/notes/skew-issue/</guid><description>&lt;p>&lt;img src="https://viniciusesposito.com/rekt_csgo.png" alt="I Got Rekt By a 12 Year Old">&lt;/p>
+&lt;p>If, after staring at fictional numbers all day, you, like me, sometimes log in your favorite game to unwind and click some virtual heads only to get destroyed by kids who are years away from having their first facial hair&amp;hellip; that&amp;rsquo;s a skill issue.&lt;/p>
+&lt;p>Skew issue&lt;sup id="fnref:1">&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref">1&lt;/a>&lt;/sup>, on the other other hand, is what I am naming the fact that you could go pretty far answering quirky vol questions by simply blaming skew for existing. While a bit of a niche meme, it does not seem unreasonable to attack questions around weird behavior of derivatives trading by first wondering how skew can be behind it.&lt;/p></description></item><item><title>Forwards Are All You Need</title><link>https://viniciusesposito.com/notes/forwards-are-all-you-need/</link><pubDate>Mon, 10 Feb 2025 21:20:50 -0500</pubDate><guid>https://viniciusesposito.com/notes/forwards-are-all-you-need/</guid><description>&lt;p>&lt;img src="https://viniciusesposito.com/always_has_been.jpg" alt="Always Has Been">&lt;/p>
+&lt;p>If you have taken a course on options, it&amp;rsquo;s likely you have gone through one or multiple derivations of Black-Scholes. Odds are you stared at Ito&amp;rsquo;s Lemma for a few minutes and wondered why you didn&amp;rsquo;t instead join your friends in brute forcing into your brain a walk-through of &amp;ldquo;what happens to the three financial statements when depreciation goes up by $10&amp;rdquo; &lt;sup id="fnref:1">&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref">1&lt;/a>&lt;/sup>. But you persevered. You graduated, landed a job in NYC, and moved into an East Village apartment, which, like a Mayan temple, only gets sunlight once a year in the winter solstice.&lt;/p></description></item></channel></rss>

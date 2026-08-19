@@ -1,4 +1,4 @@
-baseURL = 'viniciusesposito.com'
+baseURL = 'https://viniciusesposito.com/'
 languageCode = 'en-us'
 title = 'Vinicius Esposito'
 
@@ -25,6 +25,3 @@ theme = 'xmin'
   name = "Notes"
   url = "/notes/"
   weight = 2
-
-[outputs]
-  notes = ['html', 'rss']
